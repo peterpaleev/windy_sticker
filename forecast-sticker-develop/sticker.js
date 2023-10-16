@@ -1,16 +1,13 @@
-const stickerElement = document.querySelector('#sticker');
-
-const testSticker = new WindySticker(stickerData, stickerElement);
-testSticker.renderData();
 
 console.log('teest');
+const stickerElement = document.querySelector('#sticker');
 
-const spotName = document.querySelector('.sticker__spotname');
+// const spotName = document.querySelector('.sticker__spotname');
 
-const newSpotName = new URLSearchParams(window.location.search).get('spotname');
+// const newSpotName = new URLSearchParams(window.location.search).get('spotname');
 
 //if spotname is provided in the url, change spotName textContent to the provided spotname
-  spotName.innerHTML = '0';
+  // spotName.innerHTML = '0';
 
 const colorStopsWindy = [
   {
@@ -174,21 +171,37 @@ class WindySticker {
 }
 
 const stickerData = [];
+fetch('http://localhost:3000/fetchWindyData')
+  .then((res) => {
+    console.log(res);
+    return res.json();
+  })
+  .then((data) => {
+    console.log(data);
+    data.response.forecast.forEach((item) => {
+      if (item.timestamp >= Date.now() / 1000 && item.timestamp < Date.now() / 1000 + 54000) {
+        const stickerItem = {};
+        stickerItem.date = item.date;
+        stickerItem.TMP = item.TMP;
+        stickerItem.UGRD = item.UGRD_GFSPLUS;
+        stickerItem.VGRD = item.VGRD_GFSPLUS;
+        stickerItem.GUST = item.GUST;
+        stickerItem.TCDC_TOTAL = item.TCDC_TOTAL;
+        stickerItem.TCDC_LOW = item.TCDC_LOW;
+        stickerItem.TCDC_MED = item.TCDC_MED;
+        stickerItem.TCDC_HIGH = item.TCDC_HIGH;
+        stickerItem.PRATE = item.PRATE;
+        stickerItem.SNOW_PRATE = item.SNOW_PRATE;
+        stickerData.push(stickerItem);
+      }
+      
+    });
+    const testSticker = new WindySticker(stickerData, stickerElement);
+    testSticker.renderData();
+  })
+  .then((err) => console.error(err));
 console.log(window.myData);
-window.myData.response.forecast.forEach((item) => {
-  if (item.timestamp >= Date.now() / 1000 && item.timestamp < Date.now() / 1000 + 54000) {
-    const stickerItem = {};
-    stickerItem.date = item.date;
-    stickerItem.TMP = item.TMP;
-    stickerItem.UGRD = item.UGRD_GFSPLUS;
-    stickerItem.VGRD = item.VGRD_GFSPLUS;
-    stickerItem.GUST = item.GUST;
-    stickerItem.TCDC_TOTAL = item.TCDC_TOTAL;
-    stickerItem.TCDC_LOW = item.TCDC_LOW;
-    stickerItem.TCDC_MED = item.TCDC_MED;
-    stickerItem.TCDC_HIGH = item.TCDC_HIGH;
-    stickerItem.PRATE = item.PRATE;
-    stickerItem.SNOW_PRATE = item.SNOW_PRATE;
-    stickerData.push(stickerItem);
-  }
-});
+
+
+
+
