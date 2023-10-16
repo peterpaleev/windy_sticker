@@ -39,7 +39,7 @@ const takeScreenshot = async (lat, lon) => {
 
   const jsonData = await fetchData(lat, lon); // Fetch the JSON data
 
-  console.log(jsonData);
+  //console.log(jsonData);
     // Pass JSON data to the frontend
     await page.evaluate((data) => {
         window.myData = data; // This will make the data accessible as `window.myData` in your frontend scripts
@@ -52,12 +52,13 @@ const takeScreenshot = async (lat, lon) => {
     deviceScaleFactor: 4 // this will make it "retina" quality (higher resolution)
   });
 
-  await page.goto(`http://localhost:5500/forecast-sticker-develop/sticker.html?lat=${lat}&lon=${lon}&spotname=thisisliveDemo`);
+  await page.goto(`http://127.0.0.1:5500/forecast-sticker-develop/sticker.html?lat=${lat}&lon=${lon}&spotname=thisisliveDemo`);
  
-  //await delay(1000); 
+  await delay(1000); 
   // Wait for 1 second
 
   const screenshot = await page.screenshot();
+
   //simple counter
   counter++;
   

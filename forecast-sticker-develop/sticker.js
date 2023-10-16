@@ -171,7 +171,13 @@ class WindySticker {
 }
 
 const stickerData = [];
-fetch('http://localhost:3000/fetchWindyData')
+
+//get lat lon from url query params
+
+const lat = new URLSearchParams(window.location.search).get('lat');
+const lon = new URLSearchParams(window.location.search).get('lon');
+
+fetch('http://localhost:3000/fetchWindyData?lat=' + lat + '&lon=' + lon + '&method=getForecastForLatLonTypeNew&type=GFS27')
   .then((res) => {
     console.log(res);
     return res.json();
