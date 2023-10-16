@@ -1,0 +1,118 @@
+.sticker {
+  font-family: Helvetica, Arial, sans-serif;
+  display: grid;
+  padding: 15px 8px;
+  background-color: #12212A;
+  width: 100%;
+  height: 100%;
+  grid-template-columns: 1fr 4fr;
+  grid-template-rows: repeat(7, 1fr);
+  -moz-column-gap: 10px;
+       column-gap: 10px;
+  row-gap: 10px;
+  grid-template-areas: "header header" ". bar-time" ". bar-conditions" "caption-temp bar-temp" "caption-wind bar-wind" "caption-gusts bar-gusts" "caption-clouds bar-clouds" "caption-precipitation bar-precipitation";
+  box-sizing: border-box;
+  color: #ffffff;
+}
+.sticker__header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  grid-area: header;
+}
+.sticker__spotname {
+  color: #FFF;
+  font-family: Helvetica;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: normal;
+  text-decoration-line: underline;
+}
+.sticker__bar {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  justify-items: center;
+  width: 100%;
+}
+.sticker__bar_time {
+  grid-area: bar-time;
+}
+.sticker__bar_conditions {
+  grid-area: bar-conditions;
+}
+.sticker__bar_temp {
+  grid-area: bar-temp;
+  background: linear-gradient(90deg, #8CD84A 0%, #8CD84A 22.4%, #FDB90C 37.39%, #D1C024 56.92%, #38F028 78.2%, #6894D5 98.47%);
+}
+.sticker__bar_wind {
+  grid-area: bar-wind;
+  background: linear-gradient(90deg, #AADE69 0%, #EAE33A 10.94%, #DD7A42 14.58%, #8CD84A 18.07%, #E7D642 26.04%, #FDB90C 29.17%, #21C878 32.29%, #346486 45.66%, #62E7EB 53.09%, #6CD41B 60.58%, #D1C024 65.29%, #38F028 69.56%, #65CE70 75.35%, #6894D5 83.9%, #8AA5C4 93.73%, #5AF1B2 100%);
+}
+.sticker__bar_gusts {
+  grid-area: bar-gusts;
+  background: linear-gradient(90deg, #8CD84A 0%, #8CD84A 22.4%, #FDB90C 37.39%, #D1C024 56.92%, #38F028 78.2%, #6894D5 98.47%);
+}
+.sticker__bar_clouds {
+  grid-area: bar-clouds;
+  background: linear-gradient(90deg, rgba(247, 247, 247, 0) 0%, rgba(237, 237, 237, 0.17) 19.07%, #E8E8E8 29.19%, rgba(176, 176, 176, 0.42) 38.17%, #B5B5B5 46.37%, rgba(189, 189, 189, 0.61) 63.16%, rgba(205, 205, 205, 0.65) 66.9%, #E6E6E6 72.6%, #E7E7E7 79.11%, rgba(203, 203, 203, 0) 100%);
+}
+.sticker__bar_precipitation {
+  grid-area: bar-precipitation;
+  background-image: url(../../images/precipitation-bg.svg);
+  background-size: 200px 30px;
+}
+.sticker__bar-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-right: 2px solid #12212A;
+  border-left: 2px solid #12212A;
+  width: 100%;
+  mix-blend-mode: difference;
+  text-align: center;
+  font-size: 16px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+}
+.sticker__bar-item_img {
+  height: 100%;
+  width: auto;
+  border: 0;
+}
+.sticker__bar-item:last-of-type {
+  border-right: 0;
+}
+.sticker__bar-item:first-of-type {
+  border-left: 0;
+}
+.sticker__caption {
+  display: flex;
+  gap: 4px;
+}
+.sticker__caption_temp {
+  grid-area: caption-temp;
+}
+.sticker__caption_wind {
+  grid-area: caption-wind;
+}
+.sticker__caption_gusts {
+  grid-area: caption-gusts;
+}
+.sticker__caption_clouds {
+  grid-area: caption-clouds;
+}
+.sticker__caption_precipitation {
+  grid-area: caption-precipitation;
+}
+.sticker__caption-text {
+  color: #FFF;
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 500;
+  line-height: normal;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}/*# sourceMappingURL=sticker.css.map */
