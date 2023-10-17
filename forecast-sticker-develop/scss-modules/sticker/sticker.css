@@ -34,6 +34,8 @@
   grid-template-columns: repeat(5, 1fr);
   justify-items: center;
   width: 100%;
+  -moz-column-gap: 0;
+       column-gap: 0;
 }
 .sticker__bar_time {
   grid-area: bar-time;
@@ -43,19 +45,15 @@
 }
 .sticker__bar_temp {
   grid-area: bar-temp;
-  background: linear-gradient(90deg, #8CD84A 0%, #8CD84A 22.4%, #FDB90C 37.39%, #D1C024 56.92%, #38F028 78.2%, #6894D5 98.47%);
 }
 .sticker__bar_wind {
   grid-area: bar-wind;
-  background: linear-gradient(90deg, #AADE69 0%, #EAE33A 10.94%, #DD7A42 14.58%, #8CD84A 18.07%, #E7D642 26.04%, #FDB90C 29.17%, #21C878 32.29%, #346486 45.66%, #62E7EB 53.09%, #6CD41B 60.58%, #D1C024 65.29%, #38F028 69.56%, #65CE70 75.35%, #6894D5 83.9%, #8AA5C4 93.73%, #5AF1B2 100%);
 }
 .sticker__bar_gusts {
   grid-area: bar-gusts;
-  background: linear-gradient(90deg, #8CD84A 0%, #8CD84A 22.4%, #FDB90C 37.39%, #D1C024 56.92%, #38F028 78.2%, #6894D5 98.47%);
 }
 .sticker__bar_clouds {
   grid-area: bar-clouds;
-  background: linear-gradient(90deg, rgba(247, 247, 247, 0) 0%, rgba(237, 237, 237, 0.17) 19.07%, #E8E8E8 29.19%, rgba(176, 176, 176, 0.42) 38.17%, #B5B5B5 46.37%, rgba(189, 189, 189, 0.61) 63.16%, rgba(205, 205, 205, 0.65) 66.9%, #E6E6E6 72.6%, #E7E7E7 79.11%, rgba(203, 203, 203, 0) 100%);
 }
 .sticker__bar_precipitation {
   grid-area: bar-precipitation;
@@ -70,11 +68,19 @@
   border-left: 2px solid #12212A;
   width: 100%;
   mix-blend-mode: difference;
+  box-sizing: border-box;
   text-align: center;
   font-size: 16px;
   font-style: normal;
   font-weight: 600;
   line-height: normal;
+}
+.sticker__bar-item::after {
+  content: "";
+  display: block;
+  background-color: #12212A;
+  top: 0;
+  bottom: 0;
 }
 .sticker__bar-item_img {
   height: 100%;

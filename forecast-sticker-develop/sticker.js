@@ -109,18 +109,6 @@ class WindySticker {
 
       return parts.length === 2 ? parts[1] : '';
     }
-    const generateLinearGradientOfClouds = (values) => {
-      const stops = values.map((value) => {
-        const opacity = 1 - (value / 100);
-        const rgbaColor = `rgba(255, 255, 255, ${opacity})`;
-    
-        return rgbaColor;
-      });
-    
-      const linearGradient = `linear-gradient(to bottom, ${stops.join(', ')})`;
-    
-      return linearGradient;
-    }
     const convertedData = [];
     this.data.forEach((item) => {
       convertedData.push({
@@ -129,9 +117,33 @@ class WindySticker {
         wind: calcMsToKmh(calcWindSpeed(item.UGRD, item.VGRD)),
         gust: calcMsToKmh(item.GUST),
         precipitation: calcPrecipitationInMM(item.PRATE, item.SNOW_PRATE)
-      }) 
+      })
     });
+
     return convertedData;
+  }
+  drawGradients() {
+    const cloudsValues = [];
+    const windValuse = [];
+    const gustValues = [];
+    this.data.forEach((item) => {
+      cloudsValues.push(item.TCDC_TOTAL);
+    });
+    console.log('cloudsValues: ' + cloudsValues);
+    function generateLinearGradientOfClouds(opacityArray) {
+      const cellWidth = 100 / 5; // Calculate the width of each cell
+    
+      const stops = opacityArray.map((opacity, index) => {
+        const position = index * cellWidth + cellWidth / 2; // Position the color stop in the middle of the cell
+        const rgbaColor = `rgba(255, 255, 255, ${opacity / 100}) ${position}%`;
+        return rgbaColor;
+      });
+    
+      const linearGradient = `linear-gradient(to right, ${stops.join(', ')})`;
+    
+      return linearGradient;
+    }
+    return generateLinearGradientOfClouds(cloudsValues);  
   }
   renderData() {
     const convertedData = this.convertData();
@@ -141,7 +153,6 @@ class WindySticker {
       switch (dataType) {
         case 'time':
           convertedData.forEach((item) => {childValues.push(item.time)});
-          
           break;
         case 'temp':
           convertedData.forEach((item) => {childValues.push(item.temp)});
@@ -166,6 +177,8 @@ class WindySticker {
     renderBarChilds(this.barWind, 'wind');
     renderBarChilds(this.barGusts, 'gust');
     renderBarChilds(this.barPrecipitation, 'precipitation');
+    this.barClouds.style.background = this.drawGradients();
+    
   }
 
 }
@@ -173,9 +186,10 @@ class WindySticker {
 const stickerData = [];
 
 //get lat lon from url query params
-
-const lat = new URLSearchParams(window.location.search).get('lat');
-const lon = new URLSearchParams(window.location.search).get('lon');
+const lat = 29.5;
+const lon = 5;
+// const lat = new URLSearchParams(window.location.search).get('lat');
+// const lon = new URLSearchParams(window.location.search).get('lon');
 
 fetch('http://localhost:3000/fetchWindyData?lat=' + lat + '&lon=' + lon + '&method=getForecastForLatLonTypeNew&type=GFS27')
   .then((res) => {
