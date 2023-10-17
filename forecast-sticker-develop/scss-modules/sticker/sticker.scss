@@ -73,8 +73,8 @@
         border-right: 2px solid #12212A;
         border-left: 2px solid #12212A;
         width: 100%;
-        mix-blend-mode: difference;
-    //    color: #12212A;
+    //    mix-blend-mode: difference;
+        color: #000000;
         box-sizing: border-box;
         text-align: center;
         font-size: 16px;
@@ -87,6 +87,12 @@
             background-color: #12212A;
             top: 0;
             bottom: 0;
+        }
+        &_time {
+            color: #ffffff;
+        }
+        &_temp {
+            color: #ffffff;
         }
         &_img {
             height: 100%;

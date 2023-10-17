@@ -76,7 +76,7 @@ const colorStopsWindy = [
   },
 ];
 class WindySticker {
-  constructor (stickerData, stickerElement) {
+  constructor (stickerData, stickerElement, colorStopsWind) {
     this.data = stickerData;
     this.sticker = stickerElement;
     this.barTime = this.sticker.querySelector('#barTime');
@@ -86,6 +86,7 @@ class WindySticker {
     this.barGusts = this.sticker.querySelector('#barGusts');
     this.barClouds = this.sticker.querySelector('#barClouds');
     this.barPrecipitation = this.sticker.querySelector('#barPrecipitation');
+    this.colorStopsWind = colorStopsWind;
   }
   convertData() {
     const calcPrecipitationInMM = (prate, snowPrate) => {
@@ -109,27 +110,6 @@ class WindySticker {
 
       return parts.length === 2 ? parts[1] : '';
     }
-    const convertedData = [];
-    this.data.forEach((item) => {
-      convertedData.push({
-        time: cutTimeFromDate(item.date),
-        temp: calcKelvinToCelsius(item.TMP),
-        wind: calcMsToKmh(calcWindSpeed(item.UGRD, item.VGRD)),
-        gust: calcMsToKmh(item.GUST),
-        precipitation: calcPrecipitationInMM(item.PRATE, item.SNOW_PRATE)
-      })
-    });
-
-    return convertedData;
-  }
-  drawGradients() {
-    const cloudsValues = [];
-    const windValuse = [];
-    const gustValues = [];
-    this.data.forEach((item) => {
-      cloudsValues.push(item.TCDC_TOTAL);
-    });
-    console.log('cloudsValues: ' + cloudsValues);
     function generateLinearGradientOfClouds(opacityArray) {
       const cellWidth = 100 / 5; // Calculate the width of each cell
     
@@ -143,7 +123,54 @@ class WindySticker {
     
       return linearGradient;
     }
-    return generateLinearGradientOfClouds(cloudsValues);  
+    function hexToRGBA(hex, alpha) {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return `rgba(${r}, ${g}, ${b}, ${alpha || 1})`;
+    }
+    function createGradientWind(values, colorStops) {
+      // Sort the color stops by value in ascending order
+      colorStops.sort((a, b) => a.value - b.value);
+    
+      const stopInterval = 100 / (values.length - 1);
+      const gradientStops = values.map((value, index) => {
+        for (let i = 0; i < colorStops.length; i++) {
+          const stop = colorStops[i];
+          if (value <= stop.value) {
+            const rgbaColor = hexToRGBA(stop.color, stop.alpha);
+            return `${rgbaColor} ${index * stopInterval}%`;
+          }
+        }
+      });
+    
+      return `linear-gradient(to right, ${gradientStops.join(', ')})`;
+    }
+    
+    const convertedData = {};
+    const convertedValues = [];
+    const cloudsValues = [];
+    const windValues = [];
+    const gustValues = [];
+    this.data.forEach((item) => {
+      cloudsValues.push(item.TCDC_TOTAL);
+      windValues.push(calcWindSpeed(item.UGRD, item.VGRD));
+      gustValues.push(item.GUST);
+      convertedValues.push({
+        time: cutTimeFromDate(item.date),
+        temp: calcKelvinToCelsius(item.TMP),
+        wind: calcWindSpeed(item.UGRD, item.VGRD),
+        gust: item.GUST,
+        precipitation: calcPrecipitationInMM(item.PRATE, item.SNOW_PRATE),
+      })
+    });
+    convertedData.convertedValues = convertedValues;
+    convertedData.gradients = {}; 
+    convertedData.gradients.cloud = generateLinearGradientOfClouds(cloudsValues);
+    convertedData.gradients.wind = createGradientWind(windValues, this.colorStopsWind);
+    convertedData.gradients.gust = createGradientWind(gustValues, this.colorStopsWind);
+    console.log('gustsArr: ' + gustValues);
+    return convertedData;
   }
   renderData() {
     const convertedData = this.convertData();
@@ -152,22 +179,21 @@ class WindySticker {
       const childValues = [];
       switch (dataType) {
         case 'time':
-          convertedData.forEach((item) => {childValues.push(item.time)});
+          convertedData.convertedValues.forEach((item) => {childValues.push(item.time)});
           break;
         case 'temp':
-          convertedData.forEach((item) => {childValues.push(item.temp)});
+          convertedData.convertedValues.forEach((item) => {childValues.push(item.temp)});
           break;
         case 'wind': 
-          convertedData.forEach((item) => {childValues.push(Math.floor(item.wind))});
+          convertedData.convertedValues.forEach((item) => {childValues.push(Math.floor(item.wind))});
           break;
         case 'gust':
-          convertedData.forEach((item) => {childValues.push(Math.floor(item.gust))});
+          convertedData.convertedValues.forEach((item) => {childValues.push(Math.floor(item.gust))});
           break;
         case 'precipitation':
-          convertedData.forEach((item) => {childValues.push(item.precipitation)});
+          convertedData.convertedValues.forEach((item) => {childValues.push(Math.floor(item.precipitation))});
           break;
       }
-      console.log(childValues);
       barChilds.forEach((child, index) => {
         child.textContent = childValues[index];
       });
@@ -177,8 +203,9 @@ class WindySticker {
     renderBarChilds(this.barWind, 'wind');
     renderBarChilds(this.barGusts, 'gust');
     renderBarChilds(this.barPrecipitation, 'precipitation');
-    this.barClouds.style.background = this.drawGradients();
-    
+    this.barClouds.style.background = convertedData.gradients.cloud;
+    this.barWind.style.background = convertedData.gradients.wind;
+    this.barGusts.style.background = convertedData.gradients.gust;
   }
 
 }
@@ -186,8 +213,8 @@ class WindySticker {
 const stickerData = [];
 
 //get lat lon from url query params
-const lat = 29.5;
-const lon = 5;
+const lat = 41.727593;
+const lon = 44.730777;
 // const lat = new URLSearchParams(window.location.search).get('lat');
 // const lon = new URLSearchParams(window.location.search).get('lon');
 
@@ -216,7 +243,7 @@ fetch('http://localhost:3000/fetchWindyData?lat=' + lat + '&lon=' + lon + '&meth
       }
       
     });
-    const testSticker = new WindySticker(stickerData, stickerElement);
+    const testSticker = new WindySticker(stickerData, stickerElement, colorStopsWindy);
     testSticker.renderData();
   })
   .then((err) => console.error(err));

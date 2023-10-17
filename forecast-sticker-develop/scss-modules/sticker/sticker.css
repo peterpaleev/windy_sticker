@@ -67,7 +67,7 @@
   border-right: 2px solid #12212A;
   border-left: 2px solid #12212A;
   width: 100%;
-  mix-blend-mode: difference;
+  color: #000000;
   box-sizing: border-box;
   text-align: center;
   font-size: 16px;
@@ -81,6 +81,12 @@
   background-color: #12212A;
   top: 0;
   bottom: 0;
+}
+.sticker__bar-item_time {
+  color: #ffffff;
+}
+.sticker__bar-item_temp {
+  color: #ffffff;
 }
 .sticker__bar-item_img {
   height: 100%;
