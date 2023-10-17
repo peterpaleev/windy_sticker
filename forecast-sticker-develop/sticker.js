@@ -133,13 +133,14 @@ class WindySticker {
       // Sort the color stops by value in ascending order
       colorStops.sort((a, b) => a.value - b.value);
     
-      const stopInterval = 100 / (values.length - 1);
+      const stopInterval = 100 / (values.length);
       const gradientStops = values.map((value, index) => {
         for (let i = 0; i < colorStops.length; i++) {
           const stop = colorStops[i];
           if (value <= stop.value) {
             const rgbaColor = hexToRGBA(stop.color, stop.alpha);
-            return `${rgbaColor} ${index * stopInterval}%`;
+            const position = (index * stopInterval) + stopInterval / 2;
+            return `${rgbaColor} ${position}%`;
           }
         }
       });
