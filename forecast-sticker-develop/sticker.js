@@ -8,6 +8,28 @@ const stickerElement = document.querySelector('#sticker');
 
 //if spotname is provided in the url, change spotName textContent to the provided spotname
   // spotName.innerHTML = '0';
+const colorStopsTemp = [
+  {
+    "color": "#0000FF", // Strong Blue
+    "value": 200, // Equivalent to -73.15°C
+    "alpha": 1
+  },
+  {
+    "color": "#66CCFF", // Light Blue
+    "value": 273.15, // Equivalent to 0°C
+    "alpha": 1
+  },
+  {
+    "color": "#FFFF66", // Light Yellow
+    "value": 300, // Equivalent to 26.85°C
+    "alpha": 1
+  },
+  {
+    "color": "#FF0000", // Strong Red
+    "value": 313.15, // Equivalent to 40°C
+    "alpha": 1
+  },
+];
 
 const colorStopsWindy = [
   {
@@ -76,8 +98,9 @@ const colorStopsWindy = [
   },
 ];
 class WindySticker {
-  constructor (stickerData, stickerElement, colorStopsWind) {
-    this.data = stickerData;
+  constructor (stickerData, stickerElement, colorStopsWind, colorStopsTemp) {
+    this.forecastData = stickerData.response.forecast;
+    this.solunarData = stickerData.response.solunarData;
     this.sticker = stickerElement;
     this.barTime = this.sticker.querySelector('#barTime');
     this.barConditions = this.sticker.querySelector('#barConditions');
@@ -87,6 +110,7 @@ class WindySticker {
     this.barClouds = this.sticker.querySelector('#barClouds');
     this.barPrecipitation = this.sticker.querySelector('#barPrecipitation');
     this.colorStopsWind = colorStopsWind;
+    this.colorStopsTemp = colorStopsTemp;
   }
   convertData() {
     const calcPrecipitationInMM = (prate, snowPrate) => {
@@ -110,7 +134,7 @@ class WindySticker {
 
       return parts.length === 2 ? parts[1] : '';
     }
-    function generateLinearGradientOfClouds(opacityArray) {
+    const generateLinearGradientOfClouds = (opacityArray) => {
       const cellWidth = 100 / 5; // Calculate the width of each cell
     
       const stops = opacityArray.map((opacity, index) => {
@@ -123,13 +147,13 @@ class WindySticker {
     
       return linearGradient;
     }
-    function hexToRGBA(hex, alpha) {
+    const hexToRGBA = (hex, alpha) => {
       const r = parseInt(hex.slice(1, 3), 16);
       const g = parseInt(hex.slice(3, 5), 16);
       const b = parseInt(hex.slice(5, 7), 16);
       return `rgba(${r}, ${g}, ${b}, ${alpha || 1})`;
     }
-    function createGradientWind(values, colorStops) {
+    const createGradientWind = (values, colorStops) => {
       // Sort the color stops by value in ascending order
       colorStops.sort((a, b) => a.value - b.value);
     
@@ -147,66 +171,182 @@ class WindySticker {
     
       return `linear-gradient(to right, ${gradientStops.join(', ')})`;
     }
+    function isDay(timestamp) {
+      const sunriseTimes = [];
+      const sunsetTimes = [];
+      this.solunarData.sunData.forEach((item) => {
+        sunriseTimes.push(item.rise);
+        sunsetTimes.push(item.set);
+      });
+      for (let i = 0; i < sunriseTimes.length; i++) {
+          if (timestamp >= sunriseTimes[i] && timestamp < sunsetTimes[i]) {
+              return true;
+          } else if (timestamp >= sunsetTimes[i] && timestamp < sunriseTimes[i + 1]) {
+              return false;
+          }
+      }
+  }
+    const calcCoditionType = (weatherData) => {
+      const {
+          timestamp,
+          PRATE,
+          TMP,
+          TCDC_HIGH,
+          TCDC_MED,
+          SNOW_PRATE,
+          UGRD,
+          VGRD,
+      } = weatherData;
+      const prate = PRATE;
+      const temp = TMP;
+      const cloudHigh = TCDC_HIGH;
+      const cloudMed = TCDC_MED;
+      const snowPrate = SNOW_PRATE;
+      const ugrd = UGRD;
+      const vgrd = VGRD;
+      let conditionType = "Undefined";
+  
+      if (prate > 0.05) {
+          if (temp >= 273.15) {
+              if (prate <= 0.16) {
+                  if (snowPrate > 0) {
+                      conditionType = "RainSnow1";
+                  } else {
+                      conditionType = "Rain1";
+                  }
+              } else if (prate <= 1.16) {
+                  if (snowPrate > 0) {
+                      conditionType = "RainSnow2";
+                  } else {
+                      conditionType = "Rain2";
+                  }
+              } else {
+                  if (snowPrate > 0) {
+                      conditionType = "RainSnow3";
+                  } else {
+                      conditionType = "Rain3";
+                  }
+              }
+          } else {
+              if (prate <= 0.5) {
+                  conditionType = "Snow1";
+              } else if (prate <= 1.583) {
+                  conditionType = "Snow2";
+              } else {
+                  conditionType = "Snow3";
+              }
+          }
+      } else {
+          if (cloudHigh > 70 || cloudMed > 60) {
+              conditionType = "Cloudy3";
+          } else if (cloudHigh > 40 || cloudMed > 40) {
+              conditionType = isDay(timestamp) ? "CloudyDay2" : "CloudyNight1";
+          } else if (cloudHigh > 10 || cloudMed > 10) {
+              conditionType = isDay() ? "CloudyDay1" : "CloudyNight1";
+          } else {
+              conditionType = isDay() ? "ClearSkyDay" : "ClearSkyNight";
+          }
+      }
+  
+      return conditionType;
+  }
     
-    const convertedData = {};
-    const convertedValues = [];
-    const cloudsValues = [];
-    const windValues = [];
-    const gustValues = [];
-    this.data.forEach((item) => {
-      cloudsValues.push(item.TCDC_TOTAL);
-      windValues.push(calcWindSpeed(item.UGRD, item.VGRD));
-      gustValues.push(item.GUST);
-      convertedValues.push({
+    // const convertedData = {};
+    // const convertedValues = [];
+    // const cloudsValues = [];
+    // const windValues = [];
+    // const gustValues = [];
+    // const conditions = [];
+    // this.forecastData.forEach((item) => {
+    //   conditions.push(calcCoditionType(item));
+    //   cloudsValues.push(item.TCDC_TOTAL);
+    //   windValues.push(calcWindSpeed(item.UGRD, item.VGRD));
+    //   gustValues.push(item.GUST);
+    //   convertedValues.push({
+    //     time: cutTimeFromDate(item.date),
+    //     temp: calcKelvinToCelsius(item.TMP),
+    //     wind: calcWindSpeed(item.UGRD, item.VGRD),
+    //     gust: item.GUST,
+    //     precipitation: calcPrecipitationInMM(item.PRATE, item.SNOW_PRATE),
+    //   })
+    // });
+    // convertedData.convertedValues = convertedValues;
+    // convertedData.gradients = {}; 
+    // convertedData.gradients.cloud = generateLinearGradientOfClouds(cloudsValues);
+    // convertedData.gradients.wind = createGradientWind(windValues, this.colorStopsWind);
+    // convertedData.gradients.gust = createGradientWind(gustValues, this.colorStopsWind);
+    // return convertedData;
+    const convertedData = {
+      convertedValues: this.forecastData.map((item) => ({
         time: cutTimeFromDate(item.date),
         temp: calcKelvinToCelsius(item.TMP),
         wind: calcWindSpeed(item.UGRD, item.VGRD),
         gust: item.GUST,
         precipitation: calcPrecipitationInMM(item.PRATE, item.SNOW_PRATE),
-      })
-    });
-    convertedData.convertedValues = convertedValues;
-    convertedData.gradients = {}; 
-    convertedData.gradients.cloud = generateLinearGradientOfClouds(cloudsValues);
-    convertedData.gradients.wind = createGradientWind(windValues, this.colorStopsWind);
-    convertedData.gradients.gust = createGradientWind(gustValues, this.colorStopsWind);
-    console.log('gustsArr: ' + gustValues);
+      })),
+      gradients: {
+        cloud: generateLinearGradientOfClouds(this.forecastData.map((item) => item.TCDC_TOTAL)),
+        wind: createGradientWind(this.forecastData.map((item) => calcWindSpeed(item.UGRD, item.VGRD)), this.colorStopsWind),
+        gust: createGradientWind(this.forecastData.map((item) => item.GUST), this.colorStopsWind),
+        temp: createGradientWind(this.forecastData.map((item) => item.TMP), this.colorStopsTemp),
+      },
+      conditions: this.forecastData.map((item) => calcCoditionType(item)),
+    };
+    console.log(convertedData);
     return convertedData;
   }
   renderData() {
     const convertedData = this.convertData();
-    const renderBarChilds = (bar, dataType) => {
-      const barChilds = bar.querySelectorAll('.sticker__bar-item');
-      const childValues = [];
-      switch (dataType) {
-        case 'time':
-          convertedData.convertedValues.forEach((item) => {childValues.push(item.time)});
-          break;
-        case 'temp':
-          convertedData.convertedValues.forEach((item) => {childValues.push(item.temp)});
-          break;
-        case 'wind': 
-          convertedData.convertedValues.forEach((item) => {childValues.push(Math.floor(item.wind))});
-          break;
-        case 'gust':
-          convertedData.convertedValues.forEach((item) => {childValues.push(Math.floor(item.gust))});
-          break;
-        case 'precipitation':
-          convertedData.convertedValues.forEach((item) => {childValues.push(Math.floor(item.precipitation))});
-          break;
-      }
+    const bars = {
+      time: this.barTime.querySelectorAll('.sticker__bar-item'),
+      temp: this.barTemp.querySelectorAll('.sticker__bar-item'),
+      wind: this.barWind.querySelectorAll('.sticker__bar-item'),
+      gust: this.barGusts.querySelectorAll('.sticker__bar-item'),
+      precipitation: this.barPrecipitation.querySelectorAll('.sticker__bar-item'),
+      conditions: this.barConditions.querySelectorAll('.sticker__bar-item'),
+    };
+    const dataTypeToProperty = {
+      time: 'time',
+      temp: 'temp',
+      wind: 'wind',
+      gust: 'gust',
+      precipitation: 'precipitation',
+    };
+    bars.conditions.forEach((item, index) => {
+      item.src = './images/' + convertedData.conditions[index] + '.svg';
+    });
+    function renderBarChilds(bar, dataType) {
+      const barChilds = bars[dataType];
+      const dataValues = convertedData.convertedValues.map((item) => {
+        switch (dataType) {
+          case 'time':
+            return item.time;
+          case 'temp':
+            return item.temp;
+          case 'wind':
+            return Math.floor(item.wind);
+          case 'gust':
+            return Math.floor(item.gust);
+          case 'precipitation':
+            return Math.floor(item.precipitation);
+          default:
+            return '';
+        }
+      });
+    
       barChilds.forEach((child, index) => {
-        child.textContent = childValues[index];
+        child.textContent = dataValues[index];
       });
     }
-    renderBarChilds(this.barTime, 'time');
-    renderBarChilds(this.barTemp, 'temp');
-    renderBarChilds(this.barWind, 'wind');
-    renderBarChilds(this.barGusts, 'gust');
-    renderBarChilds(this.barPrecipitation, 'precipitation');
+    
+    Object.keys(bars).forEach((dataType) => {
+      renderBarChilds(this[dataType], dataType);
+    });
+    
     this.barClouds.style.background = convertedData.gradients.cloud;
     this.barWind.style.background = convertedData.gradients.wind;
     this.barGusts.style.background = convertedData.gradients.gust;
+    this.barTemp.style.background = convertedData.gradients.temp;
   }
 
 }
@@ -214,37 +354,19 @@ class WindySticker {
 const stickerData = [];
 
 //get lat lon from url query params
-// const lat = 41.727593;
-// const lon = 44.730777;
-const lat = new URLSearchParams(window.location.search).get('lat');
-const lon = new URLSearchParams(window.location.search).get('lon');
+const lat =-1.388534;
+const lon = 20.116647;
+// const lat = new URLSearchParams(window.location.search).get('lat');
+// const lon = new URLSearchParams(window.location.search).get('lon');
 
-fetch('http://localhost:3000/fetchWindyData?lat=' + lat + '&lon=' + lon + '&method=getForecastForLatLonTypeNew&type=GFS27')
+fetch('http://localhost:3000/fetchWindyData?forecast_fields=solunar&from_ts=' + Math.floor(Date.now() / 1000) + '&lat=' + lat + '&lon=' + lon + '&method=getForecastForLatLonTypeNew&type=GFS27&to_ts=' + Math.floor(Date.now() / 1000 + 54000))
   .then((res) => {
     console.log(res);
     return res.json();
   })
   .then((data) => {
     console.log(data);
-    data.response.forecast.forEach((item) => {
-      if (item.timestamp >= Date.now() / 1000 && item.timestamp < Date.now() / 1000 + 54000) {
-        const stickerItem = {};
-        stickerItem.date = item.date;
-        stickerItem.TMP = item.TMP;
-        stickerItem.UGRD = item.UGRD_GFSPLUS;
-        stickerItem.VGRD = item.VGRD_GFSPLUS;
-        stickerItem.GUST = item.GUST;
-        stickerItem.TCDC_TOTAL = item.TCDC_TOTAL;
-        stickerItem.TCDC_LOW = item.TCDC_LOW;
-        stickerItem.TCDC_MED = item.TCDC_MED;
-        stickerItem.TCDC_HIGH = item.TCDC_HIGH;
-        stickerItem.PRATE = item.PRATE;
-        stickerItem.SNOW_PRATE = item.SNOW_PRATE;
-        stickerData.push(stickerItem);
-      }
-      
-    });
-    const testSticker = new WindySticker(stickerData, stickerElement, colorStopsWindy);
+    const testSticker = new WindySticker(data, stickerElement, colorStopsWindy, colorStopsTemp);
     testSticker.renderData();
   })
   .then((err) => console.error(err));
