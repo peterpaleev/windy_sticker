@@ -114,12 +114,17 @@ class WindySticker {
   }
 
   _createSVGGraph(numbers, colorHash, height, additionalSelector) {
+    console.log(numbers);
     let minValue = numbers[0];
     let maxValue = numbers[0];
     numbers.forEach((number) => {
       if (number < minValue) minValue = number;
       if (number > maxValue) maxValue = number;
     });
+    if (minValue === maxValue) {
+      minValue = 0; 
+      maxValue = 10; 
+    }
     const gradientId = `graphGradient-${colorHash}`;
     const totalWidth = (window.innerWidth - 26) / 5 * 4;
     const svg = `<svg class="sticker__bar-svg ${additionalSelector}" width="${totalWidth}" height="${height}" xmlns="http://www.w3.org/2000/svg">`;
