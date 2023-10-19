@@ -115,6 +115,8 @@ class WindySticker {
 
   _createSVGGraph(numbers, colorHash, height, additionalSelector) {
     console.log(numbers);
+    const barWidth = (window.innerWidth - 26) / 5 * 4;
+    const cellWidth = barWidth / numbers.length;
     let minValue = numbers[0];
     let maxValue = numbers[0];
     numbers.forEach((number) => {
@@ -126,7 +128,7 @@ class WindySticker {
       maxValue = 10; 
     }
     const gradientId = `graphGradient-${colorHash}`;
-    const totalWidth = (window.innerWidth - 26) / 5 * 4;
+    const totalWidth = barWidth;
     const svg = `<svg class="sticker__bar-svg ${additionalSelector}" width="${totalWidth}" height="${height}" xmlns="http://www.w3.org/2000/svg">`;
     const gradient = `
     <defs>
@@ -139,16 +141,23 @@ class WindySticker {
 
     let path = `M0 ${height} `; 
 
+    const firstY = height - (Math.min(maxValue, Math.max(minValue, numbers[0])) - minValue) / (maxValue - minValue) * height;
+
+    const firstControlX = 18;
+    const firstControlY = height;
+
+    path += `C${firstControlX} ${firstControlY}, ${firstControlX} ${firstY}, 36 ${firstY} `;
+
     for(let i = 0; i < numbers.length; i++) {
       const clampedNumber = Math.min(maxValue, Math.max(minValue, numbers[i]));
       const normalizedNumber = (clampedNumber - minValue) / (maxValue - minValue);
-      const x = i * 72 + 36; 
+      const x = i * cellWidth + cellWidth / 2;
       const y = height - normalizedNumber * height;
 
       if (i === 0) {
           path += `L${x} ${y} `;
       } else {
-          const prevX = (i - 1) * 72 + 36;
+          const prevX = (i - 1) * cellWidth + cellWidth / 2;
           const prevY = height - (Math.min(maxValue, Math.max(minValue, numbers[i - 1])) - minValue) / (maxValue - minValue) * height;
           const cp1x = (prevX + x) / 2;
           const cp1y = prevY;
@@ -391,8 +400,8 @@ class WindySticker {
 const stickerData = [];
 
 //get lat lon from url query params
-const lat = 41.736751;
-const lon = 44.768053;
+const lat = 36.46768069827348;
+const lon = -4.757080078125001;
 // const lat = new URLSearchParams(window.location.search).get('lat');
 // const lon = new URLSearchParams(window.location.search).get('lon');
 
