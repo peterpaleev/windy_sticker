@@ -52,7 +52,7 @@ const takeScreenshot = async (lat, lon) => {
     deviceScaleFactor: 4 // this will make it "retina" quality (higher resolution)
   });
 
-  await page.goto(`http://127.0.0.1:5500/forecast-sticker-develop/sticker.html?lat=${lat}&lon=${lon}&spotname=thisisliveDemo`);
+  await page.goto(`http://localhost:5555/sticker.html?lat=${lat}&lon=${lon}&spotname=thisisliveDemo`);
  
   await delay(1000); 
   // Wait for 1 second
@@ -90,4 +90,25 @@ bot.on('message', async (msg) => {
   } else {
     bot.sendMessage(chatId, '😪 Send me your location! not this: ' + msg.text);
   }
+});
+
+
+// END OF TELEGRAM BOT
+
+const express = require('express');
+const app = express();
+const path = require('path');
+
+const PORT = 5555;
+
+app.use(express.static(path.join(__dirname, 'forecast-sticker-develop')));
+
+app.get('/', (req, res) => {
+  const lat = req.query.lat;
+  const lon = req.query.lon;
+  res.sendFile(path.join(__dirname, 'forecast-sticker-develop', 'sticker.html'));
+});
+
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
