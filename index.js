@@ -5,6 +5,8 @@ const puppeteer = require('puppeteer');
 const TOKEN = '6367193857:AAHQl75wtqo14D7JvAJF6cppdvAUpd05E2I';
 const bot = new TelegramBot(TOKEN, { polling: true });
 
+const sessions = {};
+
 let counter = 0;
 
 function delay(time) {
@@ -21,7 +23,7 @@ const fetchData = async (lat, lon) => {
     return data;
   };
 
-const takeScreenshot = async (lat, lon) => {
+const takeScreenshot = async (lat, lon, hours = false) => {
   const browser = await puppeteer.launch({ headless: true });
   const page = await browser.newPage();
 
@@ -52,7 +54,7 @@ const takeScreenshot = async (lat, lon) => {
     deviceScaleFactor: 4 // this will make it "retina" quality (higher resolution)
   });
 
-  await page.goto(`http://localhost:5555/sticker.html?lat=${lat}&lon=${lon}&spotname=thisisliveDemo`);
+  await page.goto(`http://localhost:5555/sticker.html?lat=${lat}&lon=${lon}&spotname=thisisliveDemo&hours=${hours}`);
  
   await delay(1000); 
   // Wait for 1 second
@@ -78,19 +80,79 @@ bot.on('message', async (msg) => {
 
   if (msg.location) {
     const { latitude, longitude } = msg.location;
+    const { hours } = sessions[chatId];
+
+    //save the location in the session
+    sessions[chatId] = { latitude, longitude, hours };
 
     //bot.sendMessage(chatId, "one moment...");
     try {
-      const screenshotBuffer = await takeScreenshot(latitude, longitude);
+      const screenshotBuffer = await takeScreenshot(latitude, longitude, hours);
       bot.sendPhoto(chatId, screenshotBuffer);
+
+      // Ask the user if they want to try again and send text yes, when pressing the button
+      bot.sendMessage(chatId, "👍🏽 Done! Wanna try again?", {
+        reply_markup: {
+          keyboard: [
+            [{ text: 'YESSS!' }]
+          ],
+          resize_keyboard: true,
+          one_time_keyboard: true
+        }
+      });
+      
+
     } catch (error) {
       bot.sendMessage(chatId, "Error taking screenshot. Please try again later.");
       console.error("Screenshot error:", error);
     }
   } else {
     bot.sendMessage(chatId, '😪 Send me your location! not this: ' + msg.text);
+        // Ask the user for the number of days for the forecast sticker
+        bot.sendMessage(chatId, 'For how many days do you want the forecast sticker?', {
+          reply_markup: {
+            inline_keyboard: [
+              [
+                { text: '12 hours', callback_data: '12' },
+                { text: '3 days', callback_data: '72' },
+                { text: '5 days', callback_data: '120' },
+                { text: '7 days', callback_data: '168' },
+              ]
+            ]
+          }
+        });
+    
   }
 });
+
+bot.on('callback_query', async (query) => {
+  const chatId = query.message.chat.id;
+  const hours = query.data;
+
+  // Ask the user for their location
+  bot.sendMessage(chatId, 'Please share your location:', {
+    reply_markup: {
+      keyboard: [
+        [{ text: 'Share Location', request_location: true }]
+      ],
+      resize_keyboard: true,
+      one_time_keyboard: true
+    }
+  });
+
+  // Save the number of days for the forecast sticker in the user's session
+   sessions[chatId] = { hours };
+});
+
+bot.on('location', (msg) => {
+  const chatId = msg.chat.id;
+  const latitude = msg.location.latitude;
+  const longitude = msg.location.longitude;
+
+  console.log("📡 Location received:", latitude, longitude);
+  //bot.sendMessage(chatId, `Received your location: Latitude: ${latitude}, Longitude: ${longitude}`);
+});
+
 
 
 // END OF TELEGRAM BOT
