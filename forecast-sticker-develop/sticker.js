@@ -112,7 +112,55 @@ class WindySticker {
     this.colorStopsWind = colorStopsWind;
     this.colorStopsTemp = colorStopsTemp;
   }
-  convertData() {
+
+  _createSVGGraph(numbers, colorHash, height, additionalSelector) {
+    let minValue = numbers[0];
+    let maxValue = numbers[0];
+    numbers.forEach((number) => {
+      if (number < minValue) minValue = number;
+      if (number > maxValue) maxValue = number;
+    });
+    const gradientId = `graphGradient-${colorHash}`;
+    const totalWidth = (window.innerWidth - 26) / 5 * 4;
+    const svg = `<svg class="sticker__bar-svg ${additionalSelector}" width="${totalWidth}" height="${height}" xmlns="http://www.w3.org/2000/svg">`;
+    const gradient = `
+    <defs>
+        <linearGradient id="${gradientId}" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="${colorHash}" stop-opacity="1" />
+        <stop offset="100%" stop-color="${colorHash}" stop-opacity="0" />
+        </linearGradient>
+    </defs>
+    `;
+
+    let path = `M0 ${height} `; 
+
+    for(let i = 0; i < numbers.length; i++) {
+      const clampedNumber = Math.min(maxValue, Math.max(minValue, numbers[i]));
+      const normalizedNumber = (clampedNumber - minValue) / (maxValue - minValue);
+      const x = i * 72 + 36; 
+      const y = height - normalizedNumber * height;
+
+      if (i === 0) {
+          path += `L${x} ${y} `;
+      } else {
+          const prevX = (i - 1) * 72 + 36;
+          const prevY = height - (Math.min(maxValue, Math.max(minValue, numbers[i - 1])) - minValue) / (maxValue - minValue) * height;
+          const cp1x = (prevX + x) / 2;
+          const cp1y = prevY;
+          const cp2x = cp1x;
+          const cp2y = y;
+          path += `C${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${x} ${y} `;
+      }
+    }
+
+    path += `L${totalWidth} ${height}Z`;
+    const graphLine = `<path d="${path}" fill="url(#${gradientId})" />`;
+    const closingSvgTag = `</svg>`;
+    const svgGraph = svg + gradient + graphLine + closingSvgTag;
+
+    return svgGraph;
+  }
+  _convertData() {
     const calcPrecipitationInMM = (prate, snowPrate) => {
       const metersPerSecondToMMPerHour = 1000 * 3600; 
       const precipitationMM = (prate + snowPrate) * metersPerSecondToMMPerHour;
@@ -270,7 +318,7 @@ class WindySticker {
     return convertedData;
   }
   renderData() {
-    const convertedData = this.convertData();
+    const convertedData = this._convertData();
     const bars = {
       time: this.barTime.querySelectorAll('.sticker__bar-item'),
       temp: this.barTemp.querySelectorAll('.sticker__bar-item'),
@@ -316,7 +364,10 @@ class WindySticker {
     Object.keys(bars).forEach((dataType) => {
       renderBarChilds(this[dataType], dataType);
     });
-    
+    const precipitationNumbers = convertedData.convertedValues.map((item) => item.precipitation);
+    const precipitationGraph = this._createSVGGraph(precipitationNumbers, '#44CFCB', 29.5, 'sticker__bar-svg_precipitation');
+    this.barPrecipitation.querySelector('#svgWrapperPrecipitation').innerHTML = precipitationGraph;
+
     this.barClouds.style.background = convertedData.gradients.cloud;
     this.barWind.style.background = convertedData.gradients.wind;
     this.barGusts.style.background = convertedData.gradients.gust;
@@ -329,8 +380,8 @@ class WindySticker {
 const stickerData = [];
 
 //get lat lon from url query params
-// const lat =55.752183;
-// const lon = 37.654183;
+// const lat = 41.736751;
+// const lon = 44.768053;
 const lat = new URLSearchParams(window.location.search).get('lat');
 const lon = new URLSearchParams(window.location.search).get('lon');
 
@@ -344,7 +395,7 @@ fetch('http://localhost:3000/fetchWindyData?forecast_fields=solunar&from_ts=' + 
     const testSticker = new WindySticker(data, stickerElement, colorStopsWindy, colorStopsTemp);
     testSticker.renderData();
   })
-  .then((err) => console.error(err));
+  .catch((err) => console.error(err));
 
 
 

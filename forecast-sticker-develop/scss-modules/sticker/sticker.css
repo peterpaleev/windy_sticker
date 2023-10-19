@@ -36,6 +36,7 @@
   width: 100%;
   -moz-column-gap: 0;
        column-gap: 0;
+  position: relative;
 }
 .sticker__bar_time {
   grid-area: bar-time;
@@ -57,7 +58,6 @@
 }
 .sticker__bar_precipitation {
   grid-area: bar-precipitation;
-  background-image: url(../../images/precipitation-bg.svg);
   background-size: 200px 30px;
 }
 .sticker__bar-item {
@@ -90,11 +90,24 @@
   width: auto;
   border: 0;
 }
+.sticker__bar-item_precipitation {
+  color: #ffffff;
+}
 .sticker__bar-item:last-of-type {
   border-right: 0;
 }
 .sticker__bar-item:first-of-type {
   border-left: 0;
+}
+.sticker__bar-svg-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.sticker__bar-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 .sticker__caption {
   display: flex;

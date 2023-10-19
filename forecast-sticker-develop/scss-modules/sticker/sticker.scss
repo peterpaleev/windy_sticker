@@ -42,6 +42,7 @@
         justify-items: center;
         width: 100%;
         column-gap: 0;
+        position: relative;
         &_time {
             grid-area: bar-time;
         }
@@ -62,7 +63,6 @@
         }
         &_precipitation {
             grid-area: bar-precipitation;
-            background-image: url(../../images/precipitation-bg.svg);
             background-size: 200px 30px;
         }
     }
@@ -96,12 +96,25 @@
             width: auto;
             border: 0;
         }
+        &_precipitation {
+            color: #ffffff;
+        }
         &:last-of-type {
             border-right: 0;
         }
         &:first-of-type {
             border-left: 0;
         }
+    }
+    &__bar-svg-wrapper {
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+    &__bar-svg {
+        position: absolute;
+        top: 0;
+        left: 0;
     }
     &__caption {
         display: flex;
