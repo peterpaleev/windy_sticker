@@ -171,7 +171,7 @@ class WindySticker {
     
       return `linear-gradient(to right, ${gradientStops.join(', ')})`;
     }
-    function isDay(timestamp) {
+    const isDay = (timestamp) => {
       const sunriseTimes = [];
       const sunsetTimes = [];
       this.solunarData.sunData.forEach((item) => {
@@ -250,32 +250,6 @@ class WindySticker {
   
       return conditionType;
   }
-    
-    // const convertedData = {};
-    // const convertedValues = [];
-    // const cloudsValues = [];
-    // const windValues = [];
-    // const gustValues = [];
-    // const conditions = [];
-    // this.forecastData.forEach((item) => {
-    //   conditions.push(calcCoditionType(item));
-    //   cloudsValues.push(item.TCDC_TOTAL);
-    //   windValues.push(calcWindSpeed(item.UGRD, item.VGRD));
-    //   gustValues.push(item.GUST);
-    //   convertedValues.push({
-    //     time: cutTimeFromDate(item.date),
-    //     temp: calcKelvinToCelsius(item.TMP),
-    //     wind: calcWindSpeed(item.UGRD, item.VGRD),
-    //     gust: item.GUST,
-    //     precipitation: calcPrecipitationInMM(item.PRATE, item.SNOW_PRATE),
-    //   })
-    // });
-    // convertedData.convertedValues = convertedValues;
-    // convertedData.gradients = {}; 
-    // convertedData.gradients.cloud = generateLinearGradientOfClouds(cloudsValues);
-    // convertedData.gradients.wind = createGradientWind(windValues, this.colorStopsWind);
-    // convertedData.gradients.gust = createGradientWind(gustValues, this.colorStopsWind);
-    // return convertedData;
     const convertedData = {
       convertedValues: this.forecastData.map((item) => ({
         time: cutTimeFromDate(item.date),
@@ -354,10 +328,10 @@ class WindySticker {
 const stickerData = [];
 
 //get lat lon from url query params
-const lat =-1.388534;
-const lon = 20.116647;
-// const lat = new URLSearchParams(window.location.search).get('lat');
-// const lon = new URLSearchParams(window.location.search).get('lon');
+// const lat =55.752183;
+// const lon = 37.654183;
+const lat = new URLSearchParams(window.location.search).get('lat');
+const lon = new URLSearchParams(window.location.search).get('lon');
 
 fetch('http://localhost:3000/fetchWindyData?forecast_fields=solunar&from_ts=' + Math.floor(Date.now() / 1000) + '&lat=' + lat + '&lon=' + lon + '&method=getForecastForLatLonTypeNew&type=GFS27&to_ts=' + Math.floor(Date.now() / 1000 + 54000))
   .then((res) => {
@@ -370,7 +344,6 @@ fetch('http://localhost:3000/fetchWindyData?forecast_fields=solunar&from_ts=' + 
     testSticker.renderData();
   })
   .then((err) => console.error(err));
-console.log(window.myData);
 
 
 
