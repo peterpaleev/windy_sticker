@@ -321,6 +321,7 @@ class WindySticker {
     this.barWind.style.background = convertedData.gradients.wind;
     this.barGusts.style.background = convertedData.gradients.gust;
     this.barTemp.style.background = convertedData.gradients.temp;
+    this.sticker.querySelector('#spotName').textContent = window.innerWidth + ' x ' + window.innerHeight;
   }
 
 }
