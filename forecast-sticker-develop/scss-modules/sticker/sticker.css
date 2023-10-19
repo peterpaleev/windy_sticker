@@ -74,6 +74,7 @@
   font-style: normal;
   font-weight: 600;
   line-height: normal;
+  z-index: 5;
 }
 .sticker__bar-item::after {
   content: "";
@@ -99,10 +100,17 @@
 .sticker__bar-item:first-of-type {
   border-left: 0;
 }
-.sticker__bar-svg-wrapper {
+.sticker__bar-absolute-wrapper {
   position: absolute;
   top: 0;
+  right: 0;
+  bottom: 0;
   left: 0;
+}
+.sticker__bar-absolute-wrapper_clouds {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: repeat(3, 1fr);
 }
 .sticker__bar-svg {
   position: absolute;
@@ -137,4 +145,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  text-align: center;
+}
+.sticker__caption-text_micro {
+  font-size: 10px;
+}
+.sticker__caption-block {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: space-between;
+  align-items: center;
 }/*# sourceMappingURL=sticker.css.map */

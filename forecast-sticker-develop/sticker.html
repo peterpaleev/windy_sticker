@@ -65,7 +65,10 @@
         </div>
         <div class="sticker__caption sticker__caption_clouds">
             <img class="sticker__caption-img" src="./images/cloud.svg" alt="cloud">
-            <span class="sticker__caption-text"></span>
+            <div class="sticker__caption-block">
+                <span class="sticker__caption-text sticker__caption-text_micro">high</span>
+                <span class="sticker__caption-text sticker__caption-text_micro">low</span>
+            </div>
         </div>
         <div id="barClouds" class="sticker__bar sticker__bar_clouds">
             <span class="sticker__bar-item"></span>
@@ -73,6 +76,11 @@
             <span class="sticker__bar-item"></span>
             <span class="sticker__bar-item"></span>
             <span class="sticker__bar-item"></span>
+            <div id="gradientWrapperClouds" class="sticker__bar-absolute-wrapper sticker__bar-absolute-wrapper_clouds">
+                <div id="gradientCloudsHigh"></div>
+                <div id="gradientCloudsMedium"></div>
+                <div id="gradientCloudsLow"></div>
+            </div>
         </div>
         <div class="sticker__caption sticker__caption_precipitation">
             <img class="sticker__caption-img" src="./images/precipitation.svg" alt="precipitation">
@@ -84,7 +92,7 @@
             <span class="sticker__bar-item sticker__bar-item_precipitation"></span>
             <span class="sticker__bar-item sticker__bar-item_precipitation"></span>
             <span class="sticker__bar-item sticker__bar-item_precipitation"></span>
-            <div id="svgWrapperPrecipitation" class="sticker__bar-svg-wrapper"></div>
+            <div id="svgWrapperPrecipitation" class="sticker__bar-absolute-wrapper"></div>
         </div>
     </div>
 </body>

@@ -307,7 +307,11 @@ class WindySticker {
         precipitation: calcPrecipitationInMM(item.PRATE, item.SNOW_PRATE),
       })),
       gradients: {
-        cloud: generateLinearGradientOfClouds(this.forecastData.map((item) => item.TCDC_TOTAL)),
+        cloud: {
+          high: generateLinearGradientOfClouds(this.forecastData.map((item) => item.TCDC_HIGH)),
+          medium: generateLinearGradientOfClouds(this.forecastData.map((item) => item.TCDC_MED)),
+          low: generateLinearGradientOfClouds(this.forecastData.map((item) => item.TCDC_LOW)),
+        },
         wind: createGradientWind(this.forecastData.map((item) => calcWindSpeed(item.UGRD, item.VGRD)), this.colorStopsWind),
         gust: createGradientWind(this.forecastData.map((item) => item.GUST), this.colorStopsWind),
         temp: createGradientWind(this.forecastData.map((item) => item.TMP), this.colorStopsTemp),
@@ -368,7 +372,9 @@ class WindySticker {
     const precipitationGraph = this._createSVGGraph(precipitationNumbers, '#44CFCB', 29.5, 'sticker__bar-svg_precipitation');
     this.barPrecipitation.querySelector('#svgWrapperPrecipitation').innerHTML = precipitationGraph;
 
-    this.barClouds.style.background = convertedData.gradients.cloud;
+    this.barClouds.querySelector('#gradientCloudsHigh').style.background = convertedData.gradients.cloud.high;
+    this.barClouds.querySelector('#gradientCloudsMedium').style.background = convertedData.gradients.cloud.medium;
+    this.barClouds.querySelector('#gradientCloudsLow').style.background = convertedData.gradients.cloud.low;
     this.barWind.style.background = convertedData.gradients.wind;
     this.barGusts.style.background = convertedData.gradients.gust;
     this.barTemp.style.background = convertedData.gradients.temp;
