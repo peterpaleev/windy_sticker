@@ -49,8 +49,8 @@ const takeScreenshot = async (lat, lon, hours = false) => {
 
   // Set the viewport to a smaller size
   await page.setViewport({
-    width: 500,  // example width
-    height: 400, // example height
+    width: 400,  // example width
+    height: 330, // example height
     deviceScaleFactor: 4 // this will make it "retina" quality (higher resolution)
   });
 
@@ -80,14 +80,14 @@ bot.on('message', async (msg) => {
 
   if (msg.location) {
     const { latitude, longitude } = msg.location;
-    const { hours } = sessions[chatId];
+    //const { hours } = sessions[chatId];
 
     //save the location in the session
-    sessions[chatId] = { latitude, longitude, hours };
+    sessions[chatId] = { latitude, longitude };
 
     //bot.sendMessage(chatId, "one moment...");
     try {
-      const screenshotBuffer = await takeScreenshot(latitude, longitude, hours);
+      const screenshotBuffer = await takeScreenshot(latitude, longitude);
       bot.sendPhoto(chatId, screenshotBuffer);
 
       // Ask the user if they want to try again and send text yes, when pressing the button
