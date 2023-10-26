@@ -272,10 +272,10 @@ class WindySticker {
   }
 
   //get lat lon from url query params
-// const lat = 36.46768069827348;
-// const lon = -4.757080078125001;
-const lat = new URLSearchParams(window.location.search).get('lat');
-const lon = new URLSearchParams(window.location.search).get('lon');
+const lat = 36.46768069827348;
+const lon = -4.757080078125001;
+// const lat = new URLSearchParams(window.location.search).get('lat');
+// const lon = new URLSearchParams(window.location.search).get('lon');
 
 const hours = new URLSearchParams(window.location.search).get('hours');
 fetch('http://localhost:3000/fetchWindyData?forecast_fields=solunar&from_ts=' + Math.floor(Date.now() / 1000) + '&lat=' + lat + '&lon=' + lon + '&method=getForecastForLatLonTypeNew&type=GFS27&to_ts=' + Math.floor(Date.now() / 1000 + 3600 * 18))

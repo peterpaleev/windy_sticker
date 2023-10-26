@@ -2,7 +2,8 @@
         font-family: 'SF pro', Helvetica, Arial, sans-serif;
         display: grid;
         grid-template-columns: 1fr;
-        grid-template-rows: 2fr 2fr 7fr;
+        grid-template-rows: auto 3fr 7fr;
+        row-gap: 16px;
         padding: 20px;
         background-color: #14242E;
         width: 100%;
@@ -30,7 +31,7 @@
             grid-template-columns: repeat(6, 1fr);
             align-items: center;
             justify-items: center;
-            margin: 16px 0 25px;
+            margin: 0 0 8px;
         }
         &__main-content {
             display: grid;
