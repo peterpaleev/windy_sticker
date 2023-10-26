@@ -49,8 +49,8 @@ const takeScreenshot = async (lat, lon, hours = false) => {
 
   // Set the viewport to a smaller size
   await page.setViewport({
-    width: 500,  // example width
-    height: 400, // example height
+    width: 520,  // example width
+    height: 334, // example height
     deviceScaleFactor: 4 // this will make it "retina" quality (higher resolution)
   });
 

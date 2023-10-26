@@ -42,7 +42,7 @@ const asciiWorldMapFromCoordinates = (lat, lon) => {
 // Test the function with the provided coordinates
 asciiWorldMapFromCoordinates(37, 55);
 
-app.use(cors({ origin: 'http://localhost:5555' }));
+app.use(cors({ origin: 'http://127.0.0.1:5500' }));
 
 app.get('/fetchWindyData', async (req, res) => {
     try {
