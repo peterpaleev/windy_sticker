@@ -228,27 +228,31 @@ class WindySticker {
   
   }
 
-  //get lat lon from url query params
+
 const lat = 36.46768069827348;
 const lon = -4.757080078125001;
 // const lat = new URLSearchParams(window.location.search).get('lat');
 // const lon = new URLSearchParams(window.location.search).get('lon');
 
+const apiV9 = 'http://localhost:3000/fetchWindyData';
 const testOpts = {
   timeZoom: '6 days', // can also be '18 hours' or '6 hours'
   theme: 'black'
 }
 const startTimestamp = Math.floor(Date.now() / 1000);
 const endTimestamp = Math.floor(Date.now() / 1000 + 3600 * (testOpts.timeZoom == '6 days' ? 144 : testOpts.timeZoom == '18 hours' ? 18 : 6));
+const requests = [
+  fetch(apiV9 + '?forecast_fields=solunar&from_ts=' + startTimestamp + '&lat=' + lat + '&lon=' + lon + '&method=getForecastForLatLonTypeNew&type=GFS27&to_ts=' + endTimestamp),
+  fetch(apiV9 + '?method=getTimezoneByCoords&lat=' + lat + '&lon=' + lon)
+]
+
 const hours = new URLSearchParams(window.location.search).get('hours');
-fetch('http://localhost:3000/fetchWindyData?forecast_fields=solunar&from_ts=' + startTimestamp + '&lat=' + lat + '&lon=' + lon + '&method=getForecastForLatLonTypeNew&type=GFS27&to_ts=' + endTimestamp)
-  .then((res) => {
-    console.log(res);
-    return res.json();
-  })
+
+Promise.all(requests)
+  .then(responses => Promise.all(responses.map(response => response.json())))
   .then((data) => {
     console.log(data);
-    const testSticker = new WindySticker(data, stickerElement, testOpts);
+    const testSticker = new WindySticker(data[0], stickerElement, testOpts);
     testSticker.renderData();
   })
   .catch((err) => console.error(err));
