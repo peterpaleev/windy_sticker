@@ -1,10 +1,11 @@
 const stickerElement = document.querySelector('#sticker');
-
 class WindySticker {
-    constructor (stickerData, stickerElement) {
+    constructor (stickerData, stickerElement, { timeZoom = '6 days', theme = 'black' }) {
       this.forecastData = stickerData.response.forecast;
       this.solunarData = stickerData.response.solunarData;
       this.sticker = stickerElement;
+      this.timeZoom = timeZoom;
+      this.theme = theme;
     }
     _createSVGGraph(numbers, colorHash, height, additionalSelector) {
         let minValue = numbers[0];
@@ -84,29 +85,6 @@ class WindySticker {
       
         return linearGradient;
       }
-    //   const hexToRGBA = (hex, alpha) => {
-    //     const r = parseInt(hex.slice(1, 3), 16);
-    //     const g = parseInt(hex.slice(3, 5), 16);
-    //     const b = parseInt(hex.slice(5, 7), 16);
-    //     return `rgba(${r}, ${g}, ${b}, ${alpha || 1})`;
-    //   }
-    //   const createGradientWind = (values, colorStops) => {
-    //     colorStops.sort((a, b) => a.value - b.value);
-      
-    //     const stopInterval = 100 / (values.length);
-    //     const gradientStops = values.map((value, index) => {
-    //       for (let i = 0; i < colorStops.length; i++) {
-    //         const stop = colorStops[i];
-    //         if (value <= stop.value) {
-    //           const rgbaColor = hexToRGBA(stop.color, stop.alpha);
-    //           const position = (index * stopInterval) + stopInterval / 2;
-    //           return `${rgbaColor} ${position}%`;
-    //         }
-    //       }
-    //     });
-      
-    //     return `linear-gradient(to right, ${gradientStops.join(', ')})`;
-    //   }
       const isDay = (timestamp) => {
         const sunriseTimes = [];
         const sunsetTimes = [];
@@ -211,32 +189,11 @@ class WindySticker {
             medium: generateLinearGradientOfClouds(this.forecastData.map((item) => item.TCDC_MED)),
             low: generateLinearGradientOfClouds(this.forecastData.map((item) => item.TCDC_LOW)),
           },
-        //   wind: createGradientWind(this.forecastData.map((item) => calcWindSpeed(item.UGRD, item.VGRD)), this.colorStopsWind),
-        //   gust: createGradientWind(this.forecastData.map((item) => item.GUST), this.colorStopsWind),
-        //   temp: createGradientWind(this.forecastData.map((item) => item.TMP), this.colorStopsTemp),
         },
         conditions: this.forecastData.map((item) => calcCoditionType(item)),
       };
       console.log(convertedData);
       return convertedData;
-    }
-    _renderMiddle(conditions, temp, windDir, windSpeed) {
-        const stickerMiddle = this.sticker.querySelector('#stickerMiddle');
-        const conditionsImg = document.createElement('img');
-        const tempSpan = document.createElement('span');
-        const windDirImg = document.createElement('img');
-        const windSpeedSpan = document.createElement('span');
-        conditionsImg.src = './images/' + conditions + '.svg';
-        conditionsImg.alt = conditions;
-        conditionsImg.classList.add('sticker__conditions-img');
-        tempSpan.textContent = temp + '°';
-        tempSpan.classList.add('sticker__span_big');
-        windDirImg.src = './images/wind-arrow.svg';
-        windDirImg.style.transform = 'rotate(' + windDir + 90 + 'deg)';
-        windDirImg.classList.add('sticker__wind-dir-img');
-        windSpeedSpan.textContent = Math.round(windSpeed * 10) / 10;
-        windSpeedSpan.classList.add('sticker__span_big');
-        stickerMiddle.append(conditionsImg, tempSpan, windDirImg, windSpeedSpan);
     }
     _renderContent(timeValues, numberValues, svgGraph) {
         const mainContent = this.sticker.querySelector('#stickerContent');
@@ -264,7 +221,7 @@ class WindySticker {
         const windValues = convertedData.convertedValues.map((item) => Math.round(item.wind * 10) /10);
 
         const windGraph = this._createSVGGraph(convertedData.convertedValues.map((item) => item.wind), '#FF8009', mainContentHeight - 80, 'sticker__graph_wind');
-        this._renderMiddle(convertedData.conditions[0], convertedData.convertedValues[0].temp, convertedData.convertedValues[0].windDir, convertedData.convertedValues[0].wind);
+        // this._renderMiddle(convertedData.conditions[0], convertedData.convertedValues[0].temp, convertedData.convertedValues[0].windDir, convertedData.convertedValues[0].wind);
         this._renderContent(timeValues, windValues, windGraph);
 
     }
@@ -272,20 +229,26 @@ class WindySticker {
   }
 
   //get lat lon from url query params
-// const lat = 36.46768069827348;
-// const lon = -4.757080078125001;
-const lat = new URLSearchParams(window.location.search).get('lat');
-const lon = new URLSearchParams(window.location.search).get('lon');
+const lat = 36.46768069827348;
+const lon = -4.757080078125001;
+// const lat = new URLSearchParams(window.location.search).get('lat');
+// const lon = new URLSearchParams(window.location.search).get('lon');
 
+const testOpts = {
+  timeZoom: '6 days', // can also be '18 hours' or '6 hours'
+  theme: 'black'
+}
+const startTimestamp = Math.floor(Date.now() / 1000);
+const endTimestamp = Math.floor(Date.now() / 1000 + 3600 * (testOpts.timeZoom == '6 days' ? 144 : testOpts.timeZoom == '18 hours' ? 18 : 6));
 const hours = new URLSearchParams(window.location.search).get('hours');
-fetch('http://localhost:3000/fetchWindyData?forecast_fields=solunar&from_ts=' + Math.floor(Date.now() / 1000) + '&lat=' + lat + '&lon=' + lon + '&method=getForecastForLatLonTypeNew&type=GFS27&to_ts=' + Math.floor(Date.now() / 1000 + 3600 * 18))
+fetch('http://localhost:3000/fetchWindyData?forecast_fields=solunar&from_ts=' + startTimestamp + '&lat=' + lat + '&lon=' + lon + '&method=getForecastForLatLonTypeNew&type=GFS27&to_ts=' + endTimestamp)
   .then((res) => {
     console.log(res);
     return res.json();
   })
   .then((data) => {
     console.log(data);
-    const testSticker = new WindySticker(data, stickerElement);
+    const testSticker = new WindySticker(data, stickerElement, testOpts);
     testSticker.renderData();
   })
   .catch((err) => console.error(err));

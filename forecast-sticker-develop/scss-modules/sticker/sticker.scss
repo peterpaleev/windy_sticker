@@ -2,10 +2,10 @@
         font-family: 'SF pro', Helvetica, Arial, sans-serif;
         display: grid;
         grid-template-columns: 1fr;
-        grid-template-rows: auto 3fr 7fr;
-        row-gap: 16px;
-        padding: 20px;
-        background-color: #14242E;
+        grid-template-rows: auto 1fr;
+        row-gap: 20px;
+        padding: 24px;
+        background-color: #000000;
         width: 100%;
         height: 100%;
         max-height: 100vh;
@@ -25,19 +25,10 @@
             line-height: normal; 
             margin: 0;
         }
-        &__middle {
-            width: 100%;
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            align-items: center;
-            justify-items: center;
-            margin: 0 0 8px;
-        }
         &__main-content {
             display: grid;
             width: 100%;
             grid-template-columns: repeat(6, 1fr);
-            background-color: #3D4B54;
             column-gap: 1px;
             position: relative;
         }
@@ -62,7 +53,6 @@
             justify-content: center;
         }
         &__content-cell {
-            background-color: #14242E;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
