@@ -1,7 +1,8 @@
 const stickerElement = document.querySelector('#sticker');
 class WindySticker {
-    constructor (stickerData, stickerElement, { timeZoom = '6 days', theme = 'black' }) {
+    constructor (stickerData, locationData, stickerElement, { timeZoom = '6 days', theme = 'black' }) {
       this.forecastData = stickerData.response.forecast;
+      this.locationData = locationData.response;
       this.solunarData = stickerData.response.solunarData;
       this.sticker = stickerElement;
       this.timeZoom = timeZoom;
@@ -174,15 +175,94 @@ class WindySticker {
     
         return conditionType;
     }
-      const convertedData = {
+    const getPrecipitationRate = (prate, temp, snowPrate) => {// надо понять в каких юнитах приходят и должны передаваться в эту функцию PRATE & SNOW_PRATE, сейчас входящие значения слишком маленькие для этой функции
+      if (prate > 0.05) {
+        if (temp >= 273.15) {
+          if (prate <= 0.16) {
+            return snowPrate > 0 ? "RainSnow1" : "Rain1";
+          } else if (prate <= 1.16) {
+            return snowPrate > 0 ? "RainSnow2" : "Rain2";
+          } else if (prate <= 1.45) {
+            return snowPrate > 0 ? "RainSnow3" : "Rain3";
+          } else {
+            return snowPrate > 0 ? "RainSnow4" : "Rain4";
+          }
+        } else {
+          if (prate <= 0.5) {
+            return "Snow1";
+          } else if (prate <= 1.583) {
+            return "Snow2";
+          } else if (prate <= 2.0) {
+            return "Snow3";
+          } else {
+            return "Snow4";
+          }
+        }
+      }
+    
+      return false;
+    }
+    const getMostPopularCategoryStrings = (inputArray) => {
+      const categories = {
+        rainSnow: [],
+        cloud: [],
+        clear: []
+      };
+    
+      inputArray.forEach((str) => {
+        if (str.startsWith("Rain") || str.startsWith("Snow")) {
+          categories.rainSnow.push(str);
+        } else if (str.startsWith("Cloud")) {
+          categories.cloud.push(str);
+        } else if (str.startsWith("Clear")) {
+          categories.clear.push(str);
+        }
+      });
+    
+      const mostPopularCategory = Object.keys(categories).reduce((a, b) => categories[a].length > categories[b].length ? a : b);
+    
+      let mostPopularString = categories[mostPopularCategory].reduce((a, b) => {
+        const countA = inputArray.filter((str) => str === a).length;
+        const countB = inputArray.filter((str) => str === b).length;
+        return countA > countB ? a : b;
+      });
+     
+      if (mostPopularString === "CloudyNight1") {
+        mostPopularString = "CloudyDay1";
+      } else if (mostPopularString === "ClearSkyNight") {
+        mostPopularString = "ClearSkyDay";
+      }
+    
+      return mostPopularString;
+    }
+    const getDayOfWeek = (timestamp, offsetSeconds) => {
+      const utcTimestamp = timestamp + offsetSeconds;
+      const date = new Date(utcTimestamp * 1000);
+    
+      const options = { weekday: 'short' };
+      const dayOfWeek = date.toLocaleDateString('en-US', options).toUpperCase().slice(0, 2);
+    
+      return dayOfWeek;
+    }
+    function findMax(arr) {
+      return Math.max(...arr);
+    }
+    
+    function findMin(arr) {
+      return Math.min(...arr);
+    }
+
+      let convertedData = {
         convertedValues: this.forecastData.map((item) => ({
-          time: cutTimeFromDate(item.date),
-          temp: calcKelvinToCelsius(item.TMP),
           wind: calcWindSpeed(item.UGRD, item.VGRD),
           windDir: calcWindDirection(item.UGRD, item.VGRD),
           gust: item.GUST,
           precipitation: calcPrecipitationInMM(item.PRATE, item.SNOW_PRATE),
         })),
+        prate: this.forecastData.map((item => getPrecipitationRate(item.PRATE, item.TMP, item.SNOW_PRATE))),
+        temp: this.forecastData.map((item => calcKelvinToCelsius(item.TMP))),
+        timestamp: this.forecastData.map((item => item.timestamp)),
+        conditoins: this.forecastData.map((item => calcCoditionType(item))),
         gradients: {
           cloud: {
             high: generateLinearGradientOfClouds(this.forecastData.map((item) => item.TCDC_HIGH)),
@@ -190,8 +270,27 @@ class WindySticker {
             low: generateLinearGradientOfClouds(this.forecastData.map((item) => item.TCDC_LOW)),
           },
         },
-        conditions: this.forecastData.map((item) => calcCoditionType(item)),
       };
+
+      if (this.timeZoom == '6 days') {
+        const mostRecentConditions = [];
+        const daysOfWeek = [];
+        const maxTemp = [];
+        const minTemp = [];
+        for (let i = 0; i < convertedData.conditoins.length; i += 8) {
+          const subArrayConditions = convertedData.conditoins.slice(i, i + 8);
+          const conditions = getMostPopularCategoryStrings(subArrayConditions);
+          const subArrayTemp = convertedData.temp.slice(i, i + 8);
+          maxTemp.push(findMax(subArrayTemp));
+          minTemp.push(findMin(subArrayTemp));
+          mostRecentConditions.push(conditions);
+          daysOfWeek.push(getDayOfWeek(convertedData.timestamp[i], this.locationData.offsetSec));
+        }
+        convertedData.conditoins = mostRecentConditions;
+        convertedData.timeline = daysOfWeek;
+        convertedData.maxTemp = maxTemp;
+        convertedData.minTemp = minTemp;
+      }
       console.log(convertedData);
       return convertedData;
     }
@@ -216,11 +315,10 @@ class WindySticker {
     }
     renderData() {
         const convertedData = this._convertData();
-        const mainContentHeight = this.sticker.querySelector('#stickerContent').clientHeight;
         const timeValues = convertedData.convertedValues.map((item) => item.time);
         const windValues = convertedData.convertedValues.map((item) => Math.round(item.wind * 10) /10);
 
-        const windGraph = this._createSVGGraph(convertedData.convertedValues.map((item) => item.wind), '#FF8009', mainContentHeight - 80, 'sticker__graph_wind');
+        const windGraph = this._createSVGGraph(convertedData.convertedValues.map((item) => item.wind), '#FF8009', 50, 'sticker__graph_wind');
         // this._renderMiddle(convertedData.conditions[0], convertedData.convertedValues[0].temp, convertedData.convertedValues[0].windDir, convertedData.convertedValues[0].wind);
         this._renderContent(timeValues, windValues, windGraph);
 
@@ -229,8 +327,8 @@ class WindySticker {
   }
 
 
-const lat = 36.46768069827348;
-const lon = -4.757080078125001;
+const lat = 47.6335;
+const lon = -122.335;
 // const lat = new URLSearchParams(window.location.search).get('lat');
 // const lon = new URLSearchParams(window.location.search).get('lon');
 
@@ -252,7 +350,8 @@ Promise.all(requests)
   .then(responses => Promise.all(responses.map(response => response.json())))
   .then((data) => {
     console.log(data);
-    const testSticker = new WindySticker(data[0], stickerElement, testOpts);
+    const testSticker = new WindySticker(data[0], data[1], stickerElement, testOpts);
     testSticker.renderData();
+    console.log(data[1]);
   })
   .catch((err) => console.error(err));
