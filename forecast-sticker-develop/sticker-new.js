@@ -1,56 +1,246 @@
 const stickerElement = document.querySelector('#sticker');
+const testcolors = [
+  { value: 0, color: '#E5E5E5' },
+  { value: 25, color: '#FF0000' },
+  { value: 50, color: '#00FF00' },
+  { value: 75, color: '#0000FF' },
+  { value: 100, color: '#FFFFFF' }
+];
+const colorsECMWF = [
+  {
+    value: 54,
+    color: '#E5E5E5'
+  },
+  {
+    value: 50,
+    color: '#E1CDE3'
+  },
+  {
+    value: 46,
+    color: '#F5C3FB'
+  },
+  {
+    value: 42,
+    color: '#EF89F8'
+  },
+  {
+    value: 38,
+    color: '#EA3CF7'
+  },
+  {
+    value: 34,
+    color: '#BD496E'
+  },
+  {
+    value: 30,
+    color: '#74152D'
+  },
+  {
+    value: 26,
+    color: '#BB261A'
+  },
+  {
+    value: 22,
+    color: '#EB3323'
+  },
+  {
+    value: 18,
+    color: '#EE7A30'
+  },
+  {
+    value: 14,
+    color: '#F4B23E'
+  },
+  {
+    value: 10,
+    color: '#F9D949'
+  },
+  {
+    value: 6,
+    color: '#FFFE54'
+  },
+  {
+    value: 2,
+    color: '#FFFE91'
+  },
+  {
+    value: -2,
+    color: '#C7E352'
+  },
+  {
+    value: -6,
+    color: '#7CBC44'
+  },
+  {
+    value: -10,
+    color: '#6DE19F'
+  },
+  {
+    value: -14,
+    color: '#73FBFD'
+  },
+  {
+    value: -18,
+    color: '#5ACAFA'
+  },
+  {
+    value: -22,
+    color: '#3280F6'
+  },
+  {
+    value: -26,
+    color: '#7327F5'
+  },
+  {
+    value: -30,
+    color: '#51127A'
+  },
+  {
+    value: -34,
+    color: '#2D0962'
+  },
+  {
+    value: -38,
+    color: '#443446'
+  },
+  {
+    value: -42,
+    color: '#776779'
+  },
+  {
+    value: -46,
+    color: '#AA9AAC'
+  },
+  {
+    value: -50,
+    color: '#B2B2B2'
+  },
+  {
+    value: -56,
+    color: '#CCCCCC'
+  },
+  {
+    value: -65,
+    color: '#E5E5E5'
+  },
+  {
+    value: -75,
+    color: '#FFFFFF'
+  }
+]
 class WindySticker {
-    constructor (stickerData, locationData, stickerElement, { timeZoom = '6 days', theme = 'black' }) {
+    constructor (stickerData, locationData, stickerElement, { timeZoom = '6 days', theme = 'black' }, tempColors) {
       this.forecastData = stickerData.response.forecast;
       this.locationData = locationData.response;
       this.solunarData = stickerData.response.solunarData;
       this.sticker = stickerElement;
       this.timeZoom = timeZoom;
       this.theme = theme;
+      this.tempColors = tempColors;
     }
-    _createSVGGraph(numbers, colorHash, height, additionalSelector) {
-        let minValue = numbers[0];
-        let maxValue = numbers[0];
-        numbers.forEach((number) => {
+    _cutColors(colorsArray, minValue, maxValue) {
+      // Sort the colorsArray by value in ascending order
+      const sortedColors = colorsArray.slice().sort((a, b) => a.value - b.value);
+    
+      // Find the nearest colors for minValue and maxValue
+      let minColorIndex = 0;
+      let maxColorIndex = sortedColors.length - 1;
+    
+      for (let i = 0; i < sortedColors.length; i++) {
+        if (sortedColors[i].value >= minValue) {
+          minColorIndex = i === 0 ? 0 : i - 1; // Start with the first value smaller than minValue
+          break;
+        }
+      }
+    
+      for (let i = sortedColors.length - 1; i >= 0; i--) {
+        if (sortedColors[i].value <= maxValue) {
+          maxColorIndex = i === sortedColors.length - 1 ? i : i + 1; // End with the first value bigger than maxValue
+          break;
+        }
+      }
+    
+      // Extract the colors between minColorIndex and maxColorIndex
+      const cutColorsArray = sortedColors.slice(minColorIndex, maxColorIndex + 1);
+    
+      return cutColorsArray;
+    }
+    
+    _generateStopElements(colorsArray) {
+      const sortedColors = colorsArray.sort((a, b) => a.value - b.value);
+    
+      const step = 100 / (sortedColors.length - 1);
+    
+      const stopElements = sortedColors.map((color, index) => {
+        const offset = index * step;
+        return `<stop offset="${offset}%" style="stop-color: ${color.color};"></stop>`;
+      });
+    
+      return stopElements.join('\n');
+    }
+
+    _createSVGGraph(numbers) {
+      // Create SVG element
+      let minValue = numbers[0];
+      let maxValue = numbers[0];
+      numbers.forEach((number) => {
         if (number < minValue) minValue = number;
         if (number > maxValue) maxValue = number;
-        });
-        const gradientId = `graphGradient-${colorHash}`;
-        const totalWidth = window.innerWidth - 40;
-        const spacing = totalWidth / (numbers.length); // Calculate the spacing based on totalWidth and the number of points
-
-        const svg = `<svg class="sticker__graph ${additionalSelector}" width="${totalWidth}" height="${height}" xmlns="http://www.w3.org/2000/svg">`;
-        const gradient = `
-        <defs>
-            <linearGradient id="${gradientId}" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="${colorHash}" stop-opacity="0.7" />
-            <stop offset="100%" stop-color="${colorHash}" stop-opacity="0" />
-            </linearGradient>
-        </defs>
-        `;
-
-        let path = `M0 ${height} `;
-
-        const firstY = height - (Math.min(maxValue, Math.max(minValue, numbers[0])) - minValue) / (maxValue - minValue) * height;
-        let linePath = `M${spacing/2} ${firstY} `;  // Start the linePath at the y-coordinate of the first number
-
-        numbers.forEach((number, i) => {
-        const clampedNumber = Math.min(maxValue, Math.max(minValue, number));
-        const normalizedNumber = (clampedNumber - minValue) / (maxValue - minValue);
-        const x = i * spacing + spacing/2; // Adjust x based on the new spacing
-        const y = height - normalizedNumber * height;
-        path += `L${x} ${y} `;
-        linePath += `L${x} ${y} `;
-        });
-
-        path += `L${totalWidth} ${height}Z`;
-        const graphLine = `<path d="${path}" fill="url(#${gradientId})" />`;
-        const graphBorderLine = `<path d="${linePath}" stroke="${colorHash}" stroke-opacity="0.7" stroke-width="4" fill="none" />`;
-        const closingSvgTag = `</svg>`;
-        const svgGraph = svg + gradient + graphLine + graphBorderLine + closingSvgTag;
-
-        return svgGraph;
-      }
+      });
+      const colorStops = this._generateStopElements(this._cutColors(this.tempColors, minValue, maxValue));
+      console.log(colorStops);
+      const svgNS = "http://www.w3.org/2000/svg";
+      const svgWidth = this.sticker.querySelector('#stickerContent').clientWidth;
+      const svgHeight = this.sticker.querySelector('#stickerContent').clientHeight / 3;
+      const stepSize = svgWidth / (numbers.length - 1);
+    
+      const svg = document.createElementNS(svgNS, "svg");
+      svg.setAttribute("xmlns", svgNS);
+      svg.setAttribute("width", svgWidth);
+      svg.setAttribute("height", svgHeight);
+      svg.classList.add('sticker__graph');
+    
+      // Create linear gradient element
+      const gradient = document.createElementNS(svgNS, "linearGradient");
+      gradient.setAttribute("id", "colorGradient");
+      gradient.setAttribute("gradientUnits", "userSpaceOnUse");
+      gradient.setAttribute("x1", "0%");
+      gradient.setAttribute("y1", "100%"); // Change to 100%
+      gradient.setAttribute("x2", "0%");
+      gradient.setAttribute("y2", "0%");   // Change to 0%
+    
+      // Append color stops to the gradient
+      const stopColors = colorStops.split("\n").filter(Boolean);
+      stopColors.forEach((stopColor) => {
+        const stopElement = new DOMParser().parseFromString(stopColor, "text/html").body.firstChild;
+        gradient.appendChild(stopElement);
+      });
+    
+      // Append the gradient to the SVG
+      svg.appendChild(gradient);
+    
+      // Create path element for the graph line
+      const path = document.createElementNS(svgNS, "path");
+      let pathData = `M0 ${svgHeight}`;
+    
+      numbers.forEach((number, index) => {
+        const x = index * stepSize;
+        const y = svgHeight - (number / Math.max(...numbers)) * svgHeight;
+        pathData += `L${x} ${y} `;
+      });
+    
+      path.setAttribute("d", pathData);
+      path.setAttribute("fill", "none");
+      path.setAttribute("stroke", "url(#colorGradient)");
+      path.setAttribute("stroke-width", "6");
+    
+      // Append the path to the SVG
+      svg.appendChild(path);
+    
+      // Return the generated SVG as a string
+      return new XMLSerializer().serializeToString(svg);
+    }
+      
     _convertData() {
       const calcPrecipitationInMM = (prate, snowPrate) => {
         const metersPerSecondToMMPerHour = 1000 * 3600; 
@@ -259,7 +449,7 @@ class WindySticker {
           gust: item.GUST,
           precipitation: calcPrecipitationInMM(item.PRATE, item.SNOW_PRATE),
         })),
-        prate: this.forecastData.map((item => getPrecipitationRate(item.PRATE, item.TMP, item.SNOW_PRATE))),
+        prate: this.forecastData.map((item => item.PRATE)),
         temp: this.forecastData.map((item => calcKelvinToCelsius(item.TMP))),
         timestamp: this.forecastData.map((item => item.timestamp)),
         conditoins: this.forecastData.map((item => calcCoditionType(item))),
@@ -316,11 +506,10 @@ class WindySticker {
     renderData() {
         const convertedData = this._convertData();
         const timeValues = convertedData.convertedValues.map((item) => item.time);
-        const windValues = convertedData.convertedValues.map((item) => Math.round(item.wind * 10) /10);
-
-        const windGraph = this._createSVGGraph(convertedData.convertedValues.map((item) => item.wind), '#FF8009', 50, 'sticker__graph_wind');
+        const tempValues = convertedData.temp;
+        const tempGraph = this._createSVGGraph(tempValues);
         // this._renderMiddle(convertedData.conditions[0], convertedData.convertedValues[0].temp, convertedData.convertedValues[0].windDir, convertedData.convertedValues[0].wind);
-        this._renderContent(timeValues, windValues, windGraph);
+        this._renderContent(timeValues, tempValues, tempGraph);
 
     }
   
@@ -350,7 +539,7 @@ Promise.all(requests)
   .then(responses => Promise.all(responses.map(response => response.json())))
   .then((data) => {
     console.log(data);
-    const testSticker = new WindySticker(data[0], data[1], stickerElement, testOpts);
+    const testSticker = new WindySticker(data[0], data[1], stickerElement, testOpts, colorsECMWF);
     testSticker.renderData();
     console.log(data[1]);
   })
