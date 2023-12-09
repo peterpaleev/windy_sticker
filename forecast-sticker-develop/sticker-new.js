@@ -177,12 +177,8 @@ class WindySticker {
     }
 
     _createSVGGraph(numbers) {
-      let minValue = numbers[0];
-      let maxValue = numbers[0];
-      numbers.forEach((number) => {
-        if (number < minValue) minValue = number;
-        if (number > maxValue) maxValue = number;
-      });
+      let minValue = Math.min(...numbers);
+      let maxValue = Math.max(...numbers);
       const colorStops = this._generateStopElements(this._cutColors(this.tempColors, minValue, maxValue));
       console.log(colorStops);
       const svgNS = "http://www.w3.org/2000/svg";
@@ -194,7 +190,7 @@ class WindySticker {
       svg.setAttribute("xmlns", svgNS);
       svg.setAttribute("width", svgWidth);
       svg.setAttribute("height", svgHeight);
-      svg.classList.add('sticker__graph');
+      svg.classList.add("sticker__graph");
     
       const gradient = document.createElementNS(svgNS, "linearGradient");
       gradient.setAttribute("id", "colorGradient");
@@ -202,7 +198,7 @@ class WindySticker {
       gradient.setAttribute("x1", "0%");
       gradient.setAttribute("y1", "100%");
       gradient.setAttribute("x2", "0%");
-      gradient.setAttribute("y2", "0%");   
+      gradient.setAttribute("y2", "0%");
     
       const stopColors = colorStops.split("\n").filter(Boolean);
       stopColors.forEach((stopColor) => {
@@ -217,7 +213,7 @@ class WindySticker {
     
       numbers.forEach((number, index) => {
         const x = index * stepSize;
-        const y = svgHeight - (number / Math.max(...numbers)) * svgHeight;
+        const y = svgHeight - ((number - minValue) / (maxValue - minValue)) * svgHeight;
         pathData += `L${x} ${y} `;
       });
     
@@ -506,8 +502,8 @@ class WindySticker {
   }
 
 
-// const lat = 47.6335;
-// const lon = -122.335;
+// const lat = 69.632337;
+// const lon = 26.340668;
 const lat = new URLSearchParams(window.location.search).get('lat');
 const lon = new URLSearchParams(window.location.search).get('lon');
 
