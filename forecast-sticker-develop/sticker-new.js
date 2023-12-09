@@ -139,28 +139,25 @@ class WindySticker {
       this.tempColors = tempColors;
     }
     _cutColors(colorsArray, minValue, maxValue) {
-      // Sort the colorsArray by value in ascending order
       const sortedColors = colorsArray.slice().sort((a, b) => a.value - b.value);
     
-      // Find the nearest colors for minValue and maxValue
       let minColorIndex = 0;
       let maxColorIndex = sortedColors.length - 1;
     
       for (let i = 0; i < sortedColors.length; i++) {
         if (sortedColors[i].value >= minValue) {
-          minColorIndex = i === 0 ? 0 : i - 1; // Start with the first value smaller than minValue
+          minColorIndex = i === 0 ? 0 : i - 1;
           break;
         }
       }
     
       for (let i = sortedColors.length - 1; i >= 0; i--) {
         if (sortedColors[i].value <= maxValue) {
-          maxColorIndex = i === sortedColors.length - 1 ? i : i + 1; // End with the first value bigger than maxValue
+          maxColorIndex = i === sortedColors.length - 1 ? i : i + 1; 
           break;
         }
       }
     
-      // Extract the colors between minColorIndex and maxColorIndex
       const cutColorsArray = sortedColors.slice(minColorIndex, maxColorIndex + 1);
     
       return cutColorsArray;
@@ -180,7 +177,6 @@ class WindySticker {
     }
 
     _createSVGGraph(numbers) {
-      // Create SVG element
       let minValue = numbers[0];
       let maxValue = numbers[0];
       numbers.forEach((number) => {
@@ -200,26 +196,22 @@ class WindySticker {
       svg.setAttribute("height", svgHeight);
       svg.classList.add('sticker__graph');
     
-      // Create linear gradient element
       const gradient = document.createElementNS(svgNS, "linearGradient");
       gradient.setAttribute("id", "colorGradient");
       gradient.setAttribute("gradientUnits", "userSpaceOnUse");
       gradient.setAttribute("x1", "0%");
-      gradient.setAttribute("y1", "100%"); // Change to 100%
+      gradient.setAttribute("y1", "100%");
       gradient.setAttribute("x2", "0%");
-      gradient.setAttribute("y2", "0%");   // Change to 0%
+      gradient.setAttribute("y2", "0%");   
     
-      // Append color stops to the gradient
       const stopColors = colorStops.split("\n").filter(Boolean);
       stopColors.forEach((stopColor) => {
         const stopElement = new DOMParser().parseFromString(stopColor, "text/html").body.firstChild;
         gradient.appendChild(stopElement);
       });
     
-      // Append the gradient to the SVG
       svg.appendChild(gradient);
     
-      // Create path element for the graph line
       const path = document.createElementNS(svgNS, "path");
       let pathData = `M0 ${svgHeight}`;
     
@@ -234,10 +226,8 @@ class WindySticker {
       path.setAttribute("stroke", "url(#colorGradient)");
       path.setAttribute("stroke-width", "6");
     
-      // Append the path to the SVG
       svg.appendChild(path);
     
-      // Return the generated SVG as a string
       return new XMLSerializer().serializeToString(svg);
     }
       
