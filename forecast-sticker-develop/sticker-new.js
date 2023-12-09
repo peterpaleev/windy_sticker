@@ -506,10 +506,10 @@ class WindySticker {
   }
 
 
-const lat = 47.6335;
-const lon = -122.335;
-// const lat = new URLSearchParams(window.location.search).get('lat');
-// const lon = new URLSearchParams(window.location.search).get('lon');
+// const lat = 47.6335;
+// const lon = -122.335;
+const lat = new URLSearchParams(window.location.search).get('lat');
+const lon = new URLSearchParams(window.location.search).get('lon');
 
 const apiV9 = 'http://localhost:3000/fetchWindyData';
 const testOpts = {
