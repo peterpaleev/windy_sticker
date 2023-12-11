@@ -13,8 +13,20 @@
         &__header {
             display: flex;
             width: 100%;
-            justify-content: flex-end;
+            justify-content: space-between;
             align-items: center;
+        }
+        &__location {
+            color: #FFF;
+            font-size: 24px;
+            font-style: normal;
+            font-weight: 600;
+            line-height: normal;
+        }
+        &__location-icon {
+            margin-left: 8px;
+            width: 24px;
+            height: 24px;
         }
         &__logo {
             color: #FFF;
@@ -32,8 +44,14 @@
             column-gap: 1px;
             position: relative;
         }
+        &__span-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
         &__conditions-img {
-            height: 100%;
+            width: 48px;
+            height: 48px;
+            align-self: center;
         }
         &__wind-dir-img {
             width: 39px;
@@ -60,7 +78,7 @@
         &__time-span {
             color: rgba(255, 255, 255, 0.50);
             text-align: center;
-            font-size: 22px;
+            font-size: 20px;
             font-style: normal;
             font-weight: 400;
             line-height: 24px;
@@ -75,6 +93,33 @@
             line-height: normal; 
             text-align: center;
             z-index: 2;
+            &_light {
+                font-size: 18px;
+                color: rgba(255, 255, 255, 0.50);
+                text-align: center;
+            }
+        }
+        &__rain-box {
+            display: flex;
+        }
+        &__raindrop-wrapper {
+            display: grid;
+            grid-template-columns: 8.729px;
+            grid-template-rows: repeat(4, 18.25px);
+        }
+        &__raindrop {
+            display: block;
+            width: 7px;
+            height: 24px;
+            transform: rotate(-45deg);
+            border-radius: 21px;
+            background: linear-gradient(180deg, rgba(0, 87, 255, 0.22) 0%, #0094FF 70.66%);
+            &_rainsnow {
+                background: linear-gradient(180deg, rgba(0,86,255,0.22) 0%, rgba(135,204,254,0.894016981792717) 70%);
+            }
+            &_snow {
+                background: linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.9332326680672269) 70%);
+            }
         }
         &__graph {
             position: absolute;

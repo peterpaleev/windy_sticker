@@ -14,8 +14,20 @@
 .sticker__header {
   display: flex;
   width: 100%;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
+}
+.sticker__location {
+  color: #FFF;
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+}
+.sticker__location-icon {
+  margin-left: 8px;
+  width: 24px;
+  height: 24px;
 }
 .sticker__logo {
   color: #FFF;
@@ -34,8 +46,14 @@
        column-gap: 1px;
   position: relative;
 }
+.sticker__span-wrapper {
+  display: flex;
+  flex-direction: column;
+}
 .sticker__conditions-img {
-  height: 100%;
+  width: 48px;
+  height: 48px;
+  align-self: center;
 }
 .sticker__wind-dir-img {
   width: 39px;
@@ -62,7 +80,7 @@
 .sticker__time-span {
   color: rgba(255, 255, 255, 0.5);
   text-align: center;
-  font-size: 22px;
+  font-size: 20px;
   font-style: normal;
   font-weight: 400;
   line-height: 24px;
@@ -77,6 +95,33 @@
   line-height: normal;
   text-align: center;
   z-index: 2;
+}
+.sticker__value-span_light {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+}
+.sticker__rain-box {
+  display: flex;
+}
+.sticker__raindrop-wrapper {
+  display: grid;
+  grid-template-columns: 8.729px;
+  grid-template-rows: repeat(4, 18.25px);
+}
+.sticker__raindrop {
+  display: block;
+  width: 7px;
+  height: 24px;
+  transform: rotate(-45deg);
+  border-radius: 21px;
+  background: linear-gradient(180deg, rgba(0, 87, 255, 0.22) 0%, #0094FF 70.66%);
+}
+.sticker__raindrop_rainsnow {
+  background: linear-gradient(180deg, rgba(0, 86, 255, 0.22) 0%, rgba(135, 204, 254, 0.8940169818) 70%);
+}
+.sticker__raindrop_snow {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.9332326681) 70%);
 }
 .sticker__graph {
   position: absolute;

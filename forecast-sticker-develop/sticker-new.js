@@ -176,11 +176,15 @@ class WindySticker {
       return stopElements.join('\n');
     }
 
+    _findLargest(numbers) {
+      const largestNumber = Math.max(...numbers);
+      return largestNumber;
+    }
+
     _createSVGGraph(numbers) {
       let minValue = Math.min(...numbers);
       let maxValue = Math.max(...numbers);
       const colorStops = this._generateStopElements(this._cutColors(this.tempColors, minValue, maxValue));
-      console.log(colorStops);
       const svgNS = "http://www.w3.org/2000/svg";
       const svgWidth = this.sticker.querySelector('#stickerContent').clientWidth;
       const svgHeight = this.sticker.querySelector('#stickerContent').clientHeight / 3;
@@ -298,11 +302,11 @@ class WindySticker {
             UGRD,
             VGRD,
         } = weatherData;
-        const prate = PRATE;
+        const prate = PRATE * 3600;
         const temp = TMP;
         const cloudHigh = TCDC_HIGH;
         const cloudMed = TCDC_MED;
-        const snowPrate = SNOW_PRATE;
+        const snowPrate = SNOW_PRATE * 3600;
         const ugrd = UGRD;
         const vgrd = VGRD;
         let conditionType = "Undefined";
@@ -351,7 +355,7 @@ class WindySticker {
     
         return conditionType;
     }
-    const getPrecipitationRate = (prate, temp, snowPrate) => {// надо понять в каких юнитах приходят и должны передаваться в эту функцию PRATE & SNOW_PRATE, сейчас входящие значения слишком маленькие для этой функции
+    const getPrecipitationRate = (prate, temp, snowPrate) => {
       if (prate > 0.05) {
         if (temp >= 273.15) {
           if (prate <= 0.16) {
@@ -435,10 +439,13 @@ class WindySticker {
           gust: item.GUST,
           precipitation: calcPrecipitationInMM(item.PRATE, item.SNOW_PRATE),
         })),
-        prate: this.forecastData.map((item => item.PRATE)),
+        prateType: this.forecastData.map((item => getPrecipitationRate(item.PRATE * 3600, item.TMP, item.SNOW_PRATE * 3600))),
         temp: this.forecastData.map((item => calcKelvinToCelsius(item.TMP))),
         timestamp: this.forecastData.map((item => item.timestamp)),
         conditoins: this.forecastData.map((item => calcCoditionType(item))),
+        windSpeed: this.forecastData.map((item => calcWindSpeed(item.UGRD, item.VGRD))),
+        windGust: this.forecastData.map((item => item.GUST)),
+
         gradients: {
           cloud: {
             high: generateLinearGradientOfClouds(this.forecastData.map((item) => item.TCDC_HIGH)),
@@ -453,50 +460,109 @@ class WindySticker {
         const daysOfWeek = [];
         const maxTemp = [];
         const minTemp = [];
+        const maxWindSpeed = [];
         for (let i = 0; i < convertedData.conditoins.length; i += 8) {
           const subArrayConditions = convertedData.conditoins.slice(i, i + 8);
           const conditions = getMostPopularCategoryStrings(subArrayConditions);
           const subArrayTemp = convertedData.temp.slice(i, i + 8);
+          const subArrayWindSpeed = convertedData.windSpeed.slice(i, i + 8);
+          const maxWindSpeedItem = this._findLargest(subArrayWindSpeed);
           maxTemp.push(findMax(subArrayTemp));
           minTemp.push(findMin(subArrayTemp));
           mostRecentConditions.push(conditions);
+          maxWindSpeed.push(Math.round(maxWindSpeedItem * 10) / 10);
           daysOfWeek.push(getDayOfWeek(convertedData.timestamp[i], this.locationData.offsetSec));
         }
-        convertedData.conditoins = mostRecentConditions;
-        convertedData.timeline = daysOfWeek;
-        convertedData.maxTemp = maxTemp;
-        convertedData.minTemp = minTemp;
+        convertedData.conditoinsCut = mostRecentConditions;
+        convertedData.timelineCut = daysOfWeek;
+        convertedData.maxTempCut = maxTemp;
+        convertedData.minTempCut = minTemp;
+        convertedData.windSpeedCut = maxWindSpeed;
       }
       console.log(convertedData);
       return convertedData;
     }
-    _renderContent(timeValues, numberValues, svgGraph) {
-        const mainContent = this.sticker.querySelector('#stickerContent');
-        const cell = document.createElement('div');
-        const timeSpan = document.createElement('span');
-        const valueSpan = document.createElement('span');
-        cell.classList.add('sticker__content-cell');
-        timeSpan.classList.add('sticker__time-span');
-        valueSpan.classList.add('sticker__value-span');
-        timeValues.forEach((time, i) => {
-            const cellClone = cell.cloneNode(true);
-            const timeSpanClone = timeSpan.cloneNode(true);
-            const valueSpanClone = valueSpan.cloneNode(true);
-            timeSpanClone.textContent = time;
-            valueSpanClone.textContent = numberValues[i];
-            cellClone.append(timeSpanClone, valueSpanClone);
-            mainContent.append(cellClone);
-        });
-        mainContent.insertAdjacentHTML('beforeend', svgGraph);
-    }
-    renderData() {
-        const convertedData = this._convertData();
-        const timeValues = convertedData.convertedValues.map((item) => item.time);
-        const tempValues = convertedData.temp;
-        const tempGraph = this._createSVGGraph(tempValues);
-        // this._renderMiddle(convertedData.conditions[0], convertedData.convertedValues[0].temp, convertedData.convertedValues[0].windDir, convertedData.convertedValues[0].wind);
-        this._renderContent(timeValues, tempValues, tempGraph);
+    _renderContent() {
+      const convertedData = this._convertData();
+      const tempGraph = this._createSVGGraph(convertedData.temp);
+      const stickerContent = this.sticker.querySelector('#stickerContent');
+      const stickerHeader = this.sticker.querySelector('#stickerHeader');
+      const locationParts = this.locationData.name.split('/');
+      console.log(locationParts);
+      const locationWord = locationParts.length > 1 ? locationParts[1] : inputString;
+      if (locationWord) {
+        const stickerLocation = document.createElement('span');
+        const locationIcon = document.createElement('img');
+        locationIcon.src = './images/location.fill.svg';
+        locationIcon.classList.add('sticker__location-icon');
+        stickerLocation.classList.add('sticker__location');
+        stickerLocation.textContent = locationWord;
+        stickerLocation.append(locationIcon); 
+        stickerHeader.prepend(stickerLocation);
+      }
 
+      for (let i = 0; i < 6; i++) { // 6 - number of cells
+        const stickerCell = document.createElement('div');
+        const spanWrapper = document.createElement('div');
+        const timelineSpan = document.createElement('span');
+        const conditionsImg = document.createElement('img');
+        const textSpan = document.createElement('span');
+        const lightTextSpan = document.createElement('span');
+        const rainBox = document.createElement('div');
+
+        stickerCell.classList.add('sticker__content-cell');
+        spanWrapper.classList.add('sticker__span-wrapper');
+        timelineSpan.classList.add('sticker__time-span');
+        conditionsImg.classList.add('sticker__conditions-img');
+        textSpan.classList.add('sticker__value-span');
+        lightTextSpan.classList.add('sticker__value-span_light');
+        rainBox.classList.add('sticker__rain-box');
+
+        const tempSpanWrapper = spanWrapper.cloneNode(true);
+        const maxTempSpan = textSpan.cloneNode(true);
+        const minTempSpan = lightTextSpan.cloneNode(true);
+
+        const windSpanWrapper = spanWrapper.cloneNode(true);
+        const windSpeedSpan = textSpan.cloneNode(true);
+        const windUnitsSpan = lightTextSpan.cloneNode(true);
+
+        for (let n = 0; n < 8; n++) {
+          const raindropWrapper = document.createElement('div');
+          raindropWrapper.classList.add('sticker__raindrop-wrapper');
+          const currentRainData = convertedData.prateType[i * 8 + n];
+          if (currentRainData) {
+            const raindrop = document.createElement('span');
+            raindrop.classList.add('sticker__raindrop');
+            const raindropAmount = currentRainData[currentRainData.length - 1];
+            if (currentRainData.slice(0, -1) == 'RainSnow') {
+              raindrop.classList.add('sticker__raindrop_rainsnow');
+            } else if (currentRainData.slice(0, -1) == 'Snow') {
+              raindrop.classList.add('sticker__raindrop_snow');
+            }
+            for (let y = 0; y < parseInt(raindropAmount, 10); y++) {
+              const cloneRaindrop = raindrop.cloneNode(true);
+              raindropWrapper.append(cloneRaindrop);
+            }
+          }
+          rainBox.append(raindropWrapper);
+        }
+
+        timelineSpan.textContent = convertedData.timelineCut[i];
+        conditionsImg.src = `./images/${convertedData.conditoinsCut[i]}.svg`;
+        maxTempSpan.textContent = convertedData.maxTempCut[i];
+        minTempSpan.textContent = convertedData.minTempCut[i];
+        windSpeedSpan.textContent = convertedData.windSpeedCut[i];
+        windUnitsSpan.textContent = 'm/s';
+
+
+        tempSpanWrapper.append(maxTempSpan, minTempSpan);
+        windSpanWrapper.append(windSpeedSpan, windUnitsSpan);
+
+        stickerCell.append(timelineSpan, conditionsImg, tempSpanWrapper, rainBox, windSpanWrapper);
+        stickerContent.append(stickerCell);
+      }
+      
+        // mainContent.insertAdjacentHTML('beforeend', svgGraph);
     }
   
   }
@@ -526,7 +592,7 @@ Promise.all(requests)
   .then((data) => {
     console.log(data);
     const testSticker = new WindySticker(data[0], data[1], stickerElement, testOpts, colorsECMWF);
-    testSticker.renderData();
+    testSticker._renderContent();
     console.log(data[1]);
   })
   .catch((err) => console.error(err));
