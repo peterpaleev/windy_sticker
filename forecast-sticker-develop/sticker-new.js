@@ -1,4 +1,3 @@
-const stickerElement = document.querySelector('#sticker');
 const testcolors = [
   { value: 0, color: '#E5E5E5' },
   { value: 25, color: '#FF0000' },
@@ -182,20 +181,27 @@ class WindySticker {
     }
 
     _createSVGGraph(numbers) {
+      // Calculate minimum and maximum values from the numbers array
       let minValue = Math.min(...numbers);
       let maxValue = Math.max(...numbers);
+    
+      // Generate color stops for the SVG gradient based on the temperature colors and data range
       const colorStops = this._generateStopElements(this._cutColors(this.tempColors, minValue, maxValue));
+    
+      // Define the SVG namespace and set dimensions for the SVG element
       const svgNS = "http://www.w3.org/2000/svg";
       const svgWidth = this.sticker.querySelector('#stickerContent').clientWidth;
       const svgHeight = this.sticker.querySelector('#stickerContent').clientHeight / 3;
       const stepSize = svgWidth / (numbers.length - 1);
     
+      // Create the SVG element
       const svg = document.createElementNS(svgNS, "svg");
       svg.setAttribute("xmlns", svgNS);
       svg.setAttribute("width", svgWidth);
       svg.setAttribute("height", svgHeight);
       svg.classList.add("sticker__graph");
     
+      // Create the linear gradient element for the SVG
       const gradient = document.createElementNS(svgNS, "linearGradient");
       gradient.setAttribute("id", "colorGradient");
       gradient.setAttribute("gradientUnits", "userSpaceOnUse");
@@ -204,32 +210,40 @@ class WindySticker {
       gradient.setAttribute("x2", "0%");
       gradient.setAttribute("y2", "0%");
     
+      // Parse the color stops and add them to the gradient element
       const stopColors = colorStops.split("\n").filter(Boolean);
       stopColors.forEach((stopColor) => {
         const stopElement = new DOMParser().parseFromString(stopColor, "text/html").body.firstChild;
         gradient.appendChild(stopElement);
       });
     
+      // Append the gradient to the SVG element
       svg.appendChild(gradient);
     
+      // Create the path element for the graph line
       const path = document.createElementNS(svgNS, "path");
       let pathData = `M0 ${svgHeight}`;
     
+      // Generate the path data based on the numbers array
       numbers.forEach((number, index) => {
         const x = index * stepSize;
         const y = svgHeight - ((number - minValue) / (maxValue - minValue)) * svgHeight;
         pathData += `L${x} ${y} `;
       });
     
+      // Set attributes for the path element
       path.setAttribute("d", pathData);
       path.setAttribute("fill", "none");
       path.setAttribute("stroke", "url(#colorGradient)");
       path.setAttribute("stroke-width", "6");
     
+      // Append the path to the SVG element
       svg.appendChild(path);
     
+      // Serialize the SVG element to a string and return it
       return new XMLSerializer().serializeToString(svg);
     }
+    
       
     _convertData() {
       const calcPrecipitationInMM = (prate, snowPrate) => {
@@ -489,7 +503,7 @@ class WindySticker {
       const stickerHeader = this.sticker.querySelector('#stickerHeader');
       const locationParts = this.locationData.name.split('/');
       console.log(locationParts);
-      const locationWord = locationParts.length > 1 ? locationParts[1] : inputString;
+      const locationWord = "test";
       if (locationWord) {
         const stickerLocation = document.createElement('span');
         const locationIcon = document.createElement('img');
@@ -573,7 +587,7 @@ class WindySticker {
 const lat = new URLSearchParams(window.location.search).get('lat');
 const lon = new URLSearchParams(window.location.search).get('lon');
 
-const apiV9 = 'http://localhost:3000/fetchWindyData';
+const apiV9 = 'https://windy.app/proxy/apiV9.php';
 const testOpts = {
   timeZoom: '6 days', // can also be '18 hours' or '6 hours'
   theme: 'black'
@@ -586,6 +600,7 @@ const requests = [
 ]
 
 const hours = new URLSearchParams(window.location.search).get('hours');
+const stickerElement = document.querySelector('#sticker');
 
 Promise.all(requests)
   .then(responses => Promise.all(responses.map(response => response.json())))

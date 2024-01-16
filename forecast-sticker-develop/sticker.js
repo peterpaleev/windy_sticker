@@ -407,7 +407,7 @@ const lon = new URLSearchParams(window.location.search).get('lon');
 
 const hours = new URLSearchParams(window.location.search).get('hours');
 
-fetch('http://localhost:3000/fetchWindyData?forecast_fields=solunar&from_ts=' + Math.floor(Date.now() / 1000) + '&lat=' + lat + '&lon=' + lon + '&method=getForecastForLatLonTypeNew&type=GFS27&to_ts=' + Math.floor(Date.now() / 1000 + 3600 * hours))
+fetch('https://windy.app/proxy/apiV9.php?forecast_fields=solunar&from_ts=' + Math.floor(Date.now() / 1000) + '&lat=' + lat + '&lon=' + lon + '&method=getForecastForLatLonTypeNew&type=GFS27&to_ts=' + Math.floor(Date.now() / 1000 + 3600 * hours))
   .then((res) => {
     console.log(res);
     return res.json();
